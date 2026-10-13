@@ -5,9 +5,10 @@
   "description": "Browser extension (Chrome-based browsers and Safari) that makes Reddit less addictive without blocking it.",
   "scripts": {
     "build": "node scripts/build.js",
-    "test": "playwright test",
+    "test": "playwright test --project=unit --project=e2e",
     "test:unit": "playwright test --project=unit",
-    "test:e2e": "playwright test --project=reddit"
+    "test:e2e": "playwright test --project=e2e",
+    "test:live": "playwright test --project=live"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.0"

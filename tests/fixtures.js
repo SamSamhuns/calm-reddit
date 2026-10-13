@@ -1,19 +1,27 @@
 // Playwright fixtures: a Chromium with the unpacked extension loaded, shared by every test in the worker.
+// reddit.com addresses get a stub page, so the tests need no network, unless a file sets test.use({ live: true }).
 const base = require('@playwright/test');
 const path = require('node:path');
 
-const EXTENSION = path.join(__dirname, '../..');
+const EXTENSION = path.join(__dirname, '..');
 const REDDIT = 'https://www.reddit.com';
+// The content scripts run on this page as on reddit.com. It has text, so a test can see when the page is hidden.
+const STUB = '<!doctype html><title>Reddit</title><main>Calm Reddit test page</main>';
 
 const test = base.test.extend({
+  // true: the tests use the live reddit.com.
+  live: [false, { option: true, scope: 'worker' }],
+
   // Launching Chromium with an extension is slow, so one browser serves all tests in a worker.
-  extensionContext: [async ({}, use) => {
+  // It has no window unless the test file or --headed asks for one. The "chromium" channel runs extensions headless.
+  extensionContext: [async ({ headless, live }, use) => {
     const context = await base.chromium.launchPersistentContext('', {
       channel: 'chromium',
-      headless: false, // Reddit answers headless browsers with a "Prove your humanity" page
+      headless,
       viewport: { width: 1280, height: 900 },
       args: [`--disable-extensions-except=${EXTENSION}`, `--load-extension=${EXTENSION}`],
     });
+    if (!live) await context.route('https://*.reddit.com/**', (route) => route.fulfill({ contentType: 'text/html', body: STUB }));
     await use(context);
     await context.close();
   }, { scope: 'worker' }],

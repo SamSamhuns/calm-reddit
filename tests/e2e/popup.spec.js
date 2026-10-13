@@ -1,5 +1,5 @@
 // The toolbar popup, opened as a normal page.
-const { test, expect } = require('./fixtures');
+const { test, expect } = require('../fixtures');
 
 test.beforeEach(async ({ page, extensionId }) => {
   await page.goto(`chrome-extension://${extensionId}/popup/popup.html`);

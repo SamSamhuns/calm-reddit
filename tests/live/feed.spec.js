@@ -1,5 +1,8 @@
-// Feed and post-page features on live reddit.com.
-const { test, expect, openReddit, shadowTexts } = require('./fixtures');
+// Feed and post-page features on live reddit.com. `npm test` leaves them out: run them with `npm run test:live`.
+const { test, expect, openReddit, blockedReason } = require('../fixtures');
+
+// A Chromium window, because Reddit answers headless browsers with a "Prove your humanity" page.
+test.use({ live: true, headless: false });
 
 const SUB = '/r/aww/'; // busy, mixed images and video, serves ads
 const feedPosts = (page) => page.locator('main shreddit-feed shreddit-post');
@@ -117,43 +120,13 @@ test('post pages keep comments behind a button', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('data-calm-comments-open', '');
 });
 
-test('the pause screen asks for an intention and keeps it as a reminder and in the history', async ({ page, worker }) => {
-  await worker.evaluate(() => chrome.storage.local.remove('calmLastActive')); // "been away a long time"
+test('with subreddit feeds blocked, a post opened from a link still works', async ({ page, setSettings }) => {
   await openReddit(page, SUB);
+  const permalink = await feedPosts(page).first().getAttribute('permalink');
 
-  await expect(page.locator('#calm-reddit-pause')).toBeAttached();
-  await expect(page.locator('html')).toHaveAttribute('data-calm-pausing', '');
-  await page.keyboard.type('check r/aww for one minute');
-
-  // Sometimes the screen asks for a sum.
-  const sum = (await shadowTexts(page, '#calm-reddit-pause')).find((t) => /^\d+( [+−] \d+)+ = \?$/.test(t));
-  if (sum) {
-    const [first, ...rest] = sum.replace(' = ?', '').split(' ');
-    let answer = Number(first);
-    for (let i = 0; i < rest.length; i += 2) answer += (rest[i] === '+' ? 1 : -1) * Number(rest[i + 1]);
-    await page.keyboard.press('Tab'); // from the intention to the answer box
-    await page.keyboard.type(String(answer));
-  }
-  await page.waitForTimeout(16_500); // the Continue button unlocks when the 8 to 16 s timer ends
-  await page.keyboard.press('Enter');
-
-  await expect(page.locator('#calm-reddit-pause')).toHaveCount(0);
-  await expect(page.locator('#calm-reddit-intent')).toBeAttached();
-  expect(await shadowTexts(page, '#calm-reddit-intent')).toEqual(expect.arrayContaining(['check r/aww for one minute', '· 1 min']));
-  const intent = await worker.evaluate(() => chrome.storage.local.get('calmIntent'));
-  expect(intent.calmIntent.text).toBe('check r/aww for one minute');
-  await expect.poll(() => worker.evaluate(() => chrome.storage.local.get('calmHistory').then((s) => s.calmHistory)))
-    .toEqual([{ text: 'check r/aww for one minute', at: expect.any(Number) }]);
-});
-
-test('the pause screen comes back to check in during a long visit', async ({ page, worker }) => {
-  await worker.evaluate(() => chrome.storage.local.set({
-    calmIntent: { text: 'read one thread', at: Date.now() - 20 * 60_000, dismissed: false, checkAt: Date.now() - 1000 },
-  }));
-  await openReddit(page, SUB);
-
-  await expect(page.locator('#calm-reddit-pause')).toBeAttached();
-  const texts = await shadowTexts(page, '#calm-reddit-pause');
-  expect(texts).toContain('Still on it?');
-  expect(texts.join(' ')).toContain('You have been on Reddit for 20 min.');
+  await setSettings({ blockSubreddits: true });
+  await openReddit(page, permalink);
+  await expect.poll(() => blockedReason(page)).toBeNull();
+  await expect(page.locator('#calm-reddit-block')).toHaveCount(0);
+  await expect(page.locator('main shreddit-post').first()).toBeVisible();
 });

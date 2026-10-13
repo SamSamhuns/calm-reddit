@@ -1,5 +1,5 @@
-// Blocked pages and the subreddit list on live reddit.com.
-const { test, expect, openReddit, blockedReason } = require('./fixtures');
+// Blocked pages and the subreddit list, on the stub page for reddit.com addresses.
+const { test, expect, openReddit, blockedReason } = require('../fixtures');
 
 async function expectBlocked(page, text) {
   await expect.poll(() => blockedReason(page)).toContain(text);
@@ -31,16 +31,6 @@ for (const [setting, path, text] of [
     await expectBlocked(page, text);
   });
 }
-
-test('with subreddit feeds blocked, a post opened from a link still works', async ({ page, setSettings }) => {
-  await openReddit(page, '/r/aww/');
-  const permalink = await page.locator('main shreddit-feed shreddit-post').first().getAttribute('permalink');
-
-  await setSettings({ blockSubreddits: true });
-  await openReddit(page, permalink);
-  await expectAllowed(page);
-  await expect(page.locator('main shreddit-post').first()).toBeVisible();
-});
 
 test('allow list: listed subreddits open, others are blocked', async ({ page, setSettings }) => {
   await setSettings({ subredditMode: 'allow', subreddits: ['aww'] });

@@ -94,8 +94,11 @@ Protections (default on) are listed in `data-calm-off` while turned off, so they
 npm install
 npx playwright install chromium
 npm run test:unit   # URL rules, offline, under a second
-npm run test:e2e    # live reddit.com with the extension loaded (~3 min)
+npm run test:e2e    # the extension in a headless Chromium, offline (~20 s)
 npm test            # both
+npm run test:live   # live reddit.com in a Chromium window (a few minutes)
 ```
 
-The end-to-end tests open a real Chromium window, because Reddit answers headless browsers with a "Prove your humanity" page. They need network access, and because they run against the live site, a Reddit redesign can break them. When that happens, look at the failure's trace (`npx playwright show-trace test-results/…/trace.zip`) and the popup's diagnostics.
+The end-to-end tests (`tests/e2e/`) give every reddit.com address a small stub page (`tests/fixtures.js`). The content scripts run on it as on the real site, so the pause screen, blocked pages and the popup are tested without a window and without network access.
+
+The live tests (`tests/live/`) check what needs Reddit's real pages: pagination, hidden recommendations, counts, ads and media, and the comments gate. `npm test` leaves them out. They open a real Chromium window, because Reddit answers headless browsers with a "Prove your humanity" page. They need network access, and because they run against the live site, a Reddit redesign can break them. When that happens, look at the failure's trace (`npx playwright show-trace test-results/…/trace.zip`) and the popup's diagnostics.
