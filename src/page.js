@@ -290,7 +290,9 @@
   function recommendationReason(post, unit, st) {
     const label = unit.querySelector('[id="-post-rtjson-content"]');
     if (label && REC_LABEL.test(label.textContent.trim())) return 'label';
-    if (post.hasAttribute('recommendation-source') || post.hasAttribute('recommendation-context')) return 'attr';
+    // Logged in, Reddit gives almost every Home post a source. "subscribed_…" posts come from communities you joined.
+    const source = post.getAttribute('recommendation-source');
+    if (source ? !/^subscribed/i.test(source) : post.hasAttribute('recommendation-context')) return 'attr';
     if (st.joinFilter) {
       // On Home, a "Join" button means the post comes from a community you haven't joined.
       const join = unit.querySelector('shreddit-join-button');
