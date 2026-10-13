@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calm Reddit</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="top">
+    <img src="../icons/icon48.png" width="32" height="32" alt="">
+    <div class="titles">
+      <h1>Calm Reddit</h1>
+      <p id="status" class="status">Protecting your attention</p>
+    </div>
+    <label class="switch" title="Turn Calm Reddit on or off">
+      <input type="checkbox" data-key="enabled" aria-label="Calm Reddit on">
+      <span class="track"><span class="thumb"></span></span>
+    </label>
+  </header>
+
+  <div id="incognito" class="notice" hidden>
+    <p><strong>Incognito isn't covered yet.</strong> Turn on <em>Allow in Incognito</em> so Reddit stays calm there too.</p>
+    <button type="button" id="open-details" class="link-btn">Open extension settings</button>
+  </div>
+
+  <section id="confirm" class="confirm" hidden>
+    <h2 id="confirm-title">Turn this off?</h2>
+    <p>It's easy to switch protections off on impulse. Wait a few seconds; if you still want to, confirm.</p>
+    <div class="confirm-actions">
+      <button type="button" id="confirm-cancel" class="btn">Keep it on</button>
+      <button type="button" id="confirm-ok" class="btn danger" disabled>Turn off (10)</button>
+    </div>
+  </section>
+
+  <main id="list" class="list">
+    <div class="row">
+      <div class="text">
+        <div class="name">Pages, not infinite scroll</div>
+        <div class="desc">
+          <select data-key="pageSize" aria-label="Posts per page">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="15">15</option>
+            <option value="25">25</option>
+          </select>
+          posts per page, then you choose to continue.
+        </div>
+      </div>
+      <label class="switch"><input type="checkbox" data-key="paginate" aria-label="Pages, not infinite scroll"><span class="track"><span class="thumb"></span></span></label>
+    </div>
+
+    <div class="row">
+      <div class="text">
+        <div class="name">Hide recommendations</div>
+        <div class="desc">Suggested posts, sidebars, trending searches, Popular/Explore links.</div>
+      </div>
+      <label class="switch"><input type="checkbox" data-key="hideRecs" aria-label="Hide recommendations"><span class="track"><span class="thumb"></span></span></label>
+    </div>
+
+    <div class="row">
+      <div class="text">
+        <div class="name">Hide votes &amp; comment counts</div>
+        <div class="desc">No scores, comment numbers or awards.</div>
+      </div>
+      <label class="switch"><input type="checkbox" data-key="hideCounts" aria-label="Hide votes and comment counts"><span class="track"><span class="thumb"></span></span></label>
+    </div>
+
+    <div class="row">
+      <div class="text">
+        <div class="name">Blur images &amp; video in feeds</div>
+        <div class="desc">Hover over one to see it.</div>
+      </div>
+      <label class="switch"><input type="checkbox" data-key="blurMedia" aria-label="Blur images and video in feeds"><span class="track"><span class="thumb"></span></span></label>
+    </div>
+
+    <div class="row">
+      <div class="text">
+        <div class="name">No video autoplay</div>
+        <div class="desc">Videos play only when you press play.</div>
+      </div>
+      <label class="switch"><input type="checkbox" data-key="noAutoplay" aria-label="No video autoplay"><span class="track"><span class="thumb"></span></span></label>
+    </div>
+
+    <div class="row">
+      <div class="text">
+        <div class="name">Comments behind a button</div>
+        <div class="desc">Read the post first; open the thread if you need it.</div>
+      </div>
+      <label class="switch"><input type="checkbox" data-key="gateComments" aria-label="Comments behind a button"><span class="track"><span class="thumb"></span></span></label>
+    </div>
+
+    <div class="row">
+      <div class="text">
+        <div class="name">Pause before Reddit</div>
+        <div class="desc">
+          A
+          <select data-key="pauseSeconds" aria-label="Pause length">
+            <option value="5">5 s</option>
+            <option value="10">10 s</option>
+            <option value="20">20 s</option>
+            <option value="30">30 s</option>
+          </select>
+          breather when you arrive after
+          <select data-key="pauseAwayMinutes" aria-label="Minutes away before the pause shows again">
+            <option value="5">5 min</option>
+            <option value="15">15 min</option>
+            <option value="30">30 min</option>
+            <option value="60">1 hour</option>
+          </select>
+          away.
+        </div>
+      </div>
+      <label class="switch"><input type="checkbox" data-key="pause" aria-label="Pause before Reddit"><span class="track"><span class="thumb"></span></span></label>
+    </div>
+
+    <div class="row">
+      <div class="text">
+        <div class="name">Grayscale</div>
+        <div class="desc">Drain the colour out of Reddit.</div>
+      </div>
+      <label class="switch"><input type="checkbox" data-key="grayscale" aria-label="Grayscale"><span class="track"><span class="thumb"></span></span></label>
+    </div>
+  </main>
+
+  <footer>
+    <span>Changes apply right away on open Reddit tabs.</span>
+    <button type="button" id="diag" class="link-btn small" title="Copies page-structure details (no post content) so a problem can be fixed">Copy diagnostics</button>
+    <textarea id="diag-text" readonly hidden aria-label="Diagnostics"></textarea>
+  </footer>
+
+  <script src="../src/settings.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

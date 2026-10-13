@@ -1,0 +1,53 @@
+{
+  "manifest_version": 3,
+  "name": "Calm Reddit",
+  "short_name": "Calm Reddit",
+  "version": "1.1.0",
+  "description": "Makes Reddit less addictive: pages instead of infinite scroll, no recommendations, hidden vote counts, blurred media, comments on demand and a pause before you dive in.",
+  "minimum_chrome_version": "111",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "Calm Reddit",
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  },
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "matches": ["https://*.reddit.com/*"],
+      "exclude_matches": [
+        "https://chat.reddit.com/*",
+        "https://mod.reddit.com/*",
+        "https://accounts.reddit.com/*",
+        "https://www.reddit.com/media*",
+        "https://*.reddit.com/*.json*"
+      ],
+      "css": ["src/calm.css"],
+      "js": ["src/settings.js", "src/bridge.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://www.reddit.com/*",
+        "https://reddit.com/*",
+        "https://sh.reddit.com/*",
+        "https://new.reddit.com/*"
+      ],
+      "exclude_matches": ["https://www.reddit.com/media*", "https://*.reddit.com/*.json*"],
+      "js": ["src/page.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    }
+  ]
+}

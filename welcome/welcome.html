@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calm Reddit is installed</title>
+  <link rel="icon" href="../icons/icon32.png">
+  <link rel="stylesheet" href="welcome.css">
+</head>
+<body>
+  <main>
+    <header>
+      <img src="../icons/icon128.png" width="64" height="64" alt="">
+      <h1>Calm Reddit is on.</h1>
+      <p class="lede">Reddit now comes in pages instead of an endless scroll, without the recommendation rabbit holes. Two quick steps finish the setup.</p>
+    </header>
+
+    <ol class="steps">
+      <li class="step" id="step-incognito">
+        <div class="step-head">
+          <h2>Allow it in Incognito</h2>
+          <span id="incognito-state" class="pill">Checking…</span>
+        </div>
+        <p>Chrome switches extensions off in Incognito windows unless you allow them, so this step closes the Incognito loophole.</p>
+        <p class="how">Click the button, scroll to <strong>Allow in Incognito</strong>, and switch it on. This page updates when it's done.</p>
+        <button type="button" id="open-details" class="btn primary">Open extension settings</button>
+      </li>
+
+      <li class="step">
+        <div class="step-head"><h2>Pin it to your toolbar</h2></div>
+        <p>Click the puzzle-piece icon next to the address bar and pin <strong>Calm Reddit</strong>. Its popup lets you change page size, pause length and each protection.</p>
+      </li>
+    </ol>
+
+    <section class="what">
+      <h2>What changes on Reddit</h2>
+      <ul>
+        <li><strong>Pages, not infinite scroll.</strong> Ten posts, then a <em>Next page</em> button.</li>
+        <li><strong>No recommendations.</strong> Suggested posts, sidebars, trending searches and the Popular/Explore links are gone.</li>
+        <li><strong>No numbers.</strong> Vote scores, comment counts and awards are hidden.</li>
+        <li><strong>Calmer media.</strong> Images and videos in feeds are blurred until you hover, and nothing autoplays.</li>
+        <li><strong>Comments on demand.</strong> Post pages open with comments tucked behind a button.</li>
+        <li><strong>A pause on the way in.</strong> When you arrive after 15 minutes away, a 10-second breather asks what you came for.</li>
+      </ul>
+      <p class="note">Turning a protection off in the popup asks you to wait 10 seconds first, so it's harder to undo on impulse.</p>
+    </section>
+  </main>
+
+  <script src="welcome.js"></script>
+</body>
+</html>

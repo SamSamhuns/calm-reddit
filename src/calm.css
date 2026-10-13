@@ -1,0 +1,157 @@
+/*
+ * Calm Reddit: page styles (injected before Reddit renders).
+ * Each feature is ON unless its token appears in <html data-calm-off="...">,
+ * so nothing addictive flashes on screen while settings load.
+ * Rules for things inside Reddit's shadow roots live in page.js.
+ */
+
+/* ---------- Pause screen: keep the page hidden behind the breather ---------- */
+html[data-calm-pausing] body { visibility: hidden !important; }
+html[data-calm-pausing] { overflow: hidden !important; }
+
+/* ---------- Grayscale (opt-in) ---------- */
+html[data-calm-on~="grayscale"] { filter: grayscale(1) !important; }
+
+/* ---------- Pagination ---------- */
+/* Reddit's "load more at the bottom" loader. page.js loads batches only when you click Next page. */
+html:not([data-calm-off~="paginate"]) :is(
+  shreddit-feed faceplate-partial[slot="load-after"],
+  :has(> shreddit-feed) > faceplate-partial[slot="load-after"]
+) { display: none !important; }
+/* Posts on other pages, duplicates, and loaders/placeholders after the last post (flags set by page.js). */
+html:not([data-calm-off~="paginate"]) :is([data-calm-offpage], [data-calm-dup], [data-calm-trailing]) {
+  display: none !important;
+}
+
+#calm-pager {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 20px 0 48px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  background: color-mix(in srgb, currentColor 5%, transparent);
+  font: inherit;
+  font-size: 14px;
+  color: inherit;
+}
+html[data-calm-off~="paginate"] #calm-pager { display: none !important; }
+#calm-pager .calm-info { opacity: .75; text-align: center; flex: 1; }
+
+.calm-btn {
+  appearance: none;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1;
+  padding: 10px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.calm-btn:hover:not(:disabled) { background: color-mix(in srgb, currentColor 8%, transparent); }
+.calm-btn:focus-visible { outline: 2px solid #3f8f84; outline-offset: 2px; }
+.calm-btn:disabled { opacity: .4; cursor: default; }
+.calm-btn.calm-primary { background: #2f7a70; border-color: #2f7a70; color: #fff; }
+.calm-btn.calm-primary:hover:not(:disabled) { background: #276a61; }
+
+/* ---------- Recommendations ---------- */
+/* Anything page.js identified as a recommendation (suggested posts, "related" sections, feeds on post pages). */
+html:not([data-calm-off~="recs"]) [data-calm-rec] { display: none !important; }
+
+html:not([data-calm-off~="recs"]) :is(
+  recent-posts,
+  [recent-post-ids],
+  faceplate-tracker[noun="games_drawer"],
+  faceplate-tracker[noun="games_drawer"] + hr,
+  shreddit-async-loader[bundlename*="trending" i],
+  shreddit-async-loader[bundlename*="recommend" i],
+  :is(aside, section, div, nav)[aria-label*="popular communities" i],
+  :is(aside, section, div, nav)[aria-label*="related communities" i],
+  :is(aside, section, div, nav)[aria-label*="recent posts" i],
+  :is(aside, section, div, nav)[aria-label*="more posts you may like" i]
+) { display: none !important; }
+
+/* On Home / Popular / All / Explore the right sidebar is pure recommendations. */
+html:not([data-calm-off~="recs"]):is([data-calm-page="home"], [data-calm-page="popular"], [data-calm-page="all"], [data-calm-page="explore"])
+  :is(#right-sidebar-container, #right-sidebar-contents) { display: none !important; }
+
+/* Popular / Explore / All links and Reddit Games in the left menu. The feeds still work if you type the URL. */
+html:not([data-calm-off~="recs"]) :is(#flex-left-nav-container, #left-sidebar-container, reddit-sidebar-nav, left-nav-top-section) :is(
+  a[href$="/r/popular/"], a[href$="/r/popular"],
+  a[href$="/explore/"], a[href$="/explore"],
+  a[href$="/r/all/"], a[href$="/r/all"],
+  li:has(> a[href$="/r/popular/"], > a[href$="/explore/"], > a[href$="/r/all/"]),
+  li:has(> faceplate-tracker > a[href$="/r/popular/"], > faceplate-tracker > a[href$="/explore/"], > faceplate-tracker > a[href$="/r/all/"]),
+  faceplate-tracker:has(> a[href$="/r/popular/"], > a[href$="/explore/"], > a[href$="/r/all/"])
+) { display: none !important; }
+
+/* Unread badges in the header. */
+html:not([data-calm-off~="recs"]) :is(reddit-header-large, header) :is(.notification-badge, [class*="notification-badge"], [data-testid*="badge" i]) {
+  display: none !important;
+}
+
+/* Old Reddit (already paginated): trending subreddits and recently viewed links. */
+html:not([data-calm-off~="recs"]) :is(.trending-subreddits, .sidecontentbox, .listingsignupbar) { display: none !important; }
+
+/* ---------- Vote & comment counts, awards ---------- */
+html:not([data-calm-off~="counts"]) :is(
+  faceplate-number,
+  award-button,
+  shreddit-award-button,
+  awards-bar,
+  [data-post-click-location="award"]
+) { display: none !important; }
+
+/* Old Reddit scores. */
+html:not([data-calm-off~="counts"]) :is(.midcol .score, .tagline .score, .linkinfo .score, .linkinfo .upvoted) {
+  display: none !important;
+}
+
+/* ---------- Media in feeds: blurred until you hover ---------- */
+html:not([data-calm-off~="blur"]) shreddit-feed shreddit-post :is([slot="post-media-container"], [slot="thumbnail"]),
+html:not([data-calm-off~="blur"]) shreddit-feed :is(shreddit-gallery-carousel, gallery-carousel, shreddit-player, shreddit-player-2, shreddit-embed):not([slot="post-media-container"] *, [slot="thumbnail"] *) {
+  filter: blur(22px) saturate(.4) !important;
+  clip-path: inset(0 round 12px);
+  transition: filter .25s ease;
+}
+html:not([data-calm-off~="blur"]) shreddit-feed shreddit-post :is([slot="post-media-container"], [slot="thumbnail"]):hover,
+html:not([data-calm-off~="blur"]) shreddit-feed :is(shreddit-gallery-carousel, gallery-carousel, shreddit-player, shreddit-player-2, shreddit-embed):hover {
+  filter: none !important;
+}
+/* Old Reddit thumbnails. */
+html:not([data-calm-off~="blur"]) .thing .thumbnail img { filter: blur(6px) saturate(.4); transition: filter .25s ease; }
+html:not([data-calm-off~="blur"]) .thing .thumbnail:hover img { filter: none; }
+
+/* ---------- Comments behind a button (post pages) ---------- */
+html[data-calm-page="post"]:not([data-calm-off~="comments"]):not([data-calm-comments-open]) :is(
+  shreddit-comment-tree,
+  #comment-tree,
+  comment-body-header,
+  comment-forest-empty-state
+) { display: none !important; }
+
+#calm-comments-gate {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  flex-wrap: wrap;
+  margin: 16px 0 32px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px dashed color-mix(in srgb, currentColor 30%, transparent);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.45;
+  color: inherit;
+}
+#calm-comments-gate .calm-gate-text { flex: 1 1 260px; opacity: .85; }
+#calm-comments-gate strong { font-weight: 700; }
+html[data-calm-off~="comments"] #calm-comments-gate,
+html[data-calm-comments-open] #calm-comments-gate { display: none !important; }
