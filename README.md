@@ -6,14 +6,14 @@ Makes Reddit less addictive without blocking it, unless you ask it to.
 
 On by default:
 
-- **Pages instead of infinite scroll:** 10 posts, then a "Next page" button.
+- **Pages instead of infinite scroll:** 10 posts, then a "Next page" button. From page 3 on, the button unlocks after a random 3 to 6 seconds.
 - **No recommendations:** suggested posts on Home, sidebars, "More posts you may like", trending searches, and the Popular / Explore / All links. Those feeds still open (paginated) if you go there on purpose; to keep them out, use **Block pages**.
 - **No numbers:** vote scores, comment counts and awards are hidden.
 - **No ads:** promoted posts and ad slots are hidden.
 - **Calmer media:** images and videos in feeds are blurred until you hover over them, and nothing autoplays.
 - **Comments on demand:** post pages open with comments tucked behind a "Show comments" button.
-- **A pause on the way in:** when you arrive after 15+ minutes away, a screen asks what you came for. It stays for a random 8 to 16 seconds, and sometimes asks you to solve a quick sum first, so you can't just wait it out by habit.
-- **Turning any protection off** in the popup makes you wait 10 seconds first.
+- **A pause on the way in:** when you arrive after 15+ minutes away, a screen asks what you came for. It stays for a random 8 to 16 seconds, and sometimes asks you to solve a quick sum first, so you can't just wait it out by habit. What you write stays in the corner as a reminder, with how long you have been on Reddit. During a long visit, the screen comes back after a random 15 to 25 minutes to ask if you are still on task.
+- **Turning any protection off** in the popup makes you wait a random 8 to 16 seconds first.
 
 Optional, in the popup:
 
@@ -46,7 +46,7 @@ Plain JavaScript, no build step: Chrome loads the files as they are.
 | --- | --- | --- |
 | `src/settings.js` | content script, popup, welcome page | `CALM_DEFAULTS` (every setting and its default) and `CALM_FEATURES` (setting → token on `<html>`) |
 | `src/blocking.js` | content script, popup | Pure rules: which URLs are blocked, parsing the subreddit list |
-| `src/bridge.js` | content script (isolated world) | Mirrors settings onto `<html data-calm-*>`, pause screen, intention reminder, blocked-page screen |
+| `src/bridge.js` | content script (isolated world) | Mirrors settings onto `<html data-calm-*>`, pause screen (on arrival and as a check-in during a visit), intention reminder with the time on Reddit, blocked-page screen |
 | `src/page.js` | Reddit's own JS world (`"world": "MAIN"`) | Pagination, shadow-DOM styles, autoplay blocking, flagging recommended / video posts, comments gate |
 | `src/calm.css` | injected before Reddit renders | Everything that can be done with CSS, keyed off the `<html>` attributes |
 | `popup/` | toolbar popup | Settings UI; every `input`/`select` with a `data-key` is wired automatically |

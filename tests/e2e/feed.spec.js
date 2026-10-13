@@ -1,5 +1,5 @@
 // Feed and post-page features on live reddit.com.
-const { test, expect, openReddit } = require('./fixtures');
+const { test, expect, openReddit, shadowTexts } = require('./fixtures');
 
 const SUB = '/r/aww/'; // busy, mixed images and video, serves ads
 const feedPosts = (page) => page.locator('main shreddit-feed shreddit-post');
@@ -17,6 +17,15 @@ test('shows one page of posts with a pager instead of infinite scroll', async ({
   await pager.getByRole('button', { name: 'Next page →' }).click();
   await expect(pager.locator('.calm-info')).toHaveText('Page 2', { timeout: 20_000 });
   expect(await feedPosts(page).filter({ visible: true }).count()).toBeGreaterThan(0);
+
+  // From page 3 on, "Next page" unlocks after 3 to 6 s.
+  await pager.getByRole('button', { name: 'Next page →' }).click();
+  await expect(pager.locator('.calm-info')).toHaveText('Page 3', { timeout: 20_000 });
+  const next = pager.locator('.calm-primary');
+  await expect(next).toHaveText(/^Next page in \ds$/);
+  await expect(next).toBeDisabled();
+  await expect(next).toHaveText('Next page →', { timeout: 8_000 });
+  await expect(next).toBeEnabled();
 });
 
 test('stops loading after a few batches when every post in the feed is hidden', async ({ page }) => {
@@ -116,17 +125,8 @@ test('the pause screen asks for an intention and keeps it as a reminder', async 
   await expect(page.locator('html')).toHaveAttribute('data-calm-pausing', '');
   await page.keyboard.type('check r/aww for one minute');
 
-  // Sometimes the screen asks for a sum. It is in a closed shadow root, so read its text through DevTools.
-  const cdp = await page.context().newCDPSession(page);
-  const { root } = await cdp.send('DOM.getDocument', { depth: 0 });
-  const { nodeId } = await cdp.send('DOM.querySelector', { nodeId: root.nodeId, selector: '#calm-reddit-pause' });
-  const texts = [];
-  const walk = (n) => {
-    if (n.nodeType === 3) texts.push(n.nodeValue);
-    for (const child of [...(n.children || []), ...(n.shadowRoots || [])]) walk(child);
-  };
-  walk((await cdp.send('DOM.describeNode', { nodeId, depth: -1, pierce: true })).node);
-  const sum = texts.find((t) => /^\d+( [+−] \d+)+ = \?$/.test(t));
+  // Sometimes the screen asks for a sum.
+  const sum = (await shadowTexts(page, '#calm-reddit-pause')).find((t) => /^\d+( [+−] \d+)+ = \?$/.test(t));
   if (sum) {
     const [first, ...rest] = sum.replace(' = ?', '').split(' ');
     let answer = Number(first);
@@ -139,6 +139,19 @@ test('the pause screen asks for an intention and keeps it as a reminder', async 
 
   await expect(page.locator('#calm-reddit-pause')).toHaveCount(0);
   await expect(page.locator('#calm-reddit-intent')).toBeAttached();
+  expect(await shadowTexts(page, '#calm-reddit-intent')).toEqual(expect.arrayContaining(['check r/aww for one minute', '· 1 min']));
   const intent = await worker.evaluate(() => chrome.storage.local.get('calmIntent'));
   expect(intent.calmIntent.text).toBe('check r/aww for one minute');
+});
+
+test('the pause screen comes back to check in during a long visit', async ({ page, worker }) => {
+  await worker.evaluate(() => chrome.storage.local.set({
+    calmIntent: { text: 'read one thread', at: Date.now() - 20 * 60_000, dismissed: false, checkAt: Date.now() - 1000 },
+  }));
+  await openReddit(page, SUB);
+
+  await expect(page.locator('#calm-reddit-pause')).toBeAttached();
+  const texts = await shadowTexts(page, '#calm-reddit-pause');
+  expect(texts).toContain('Still on it?');
+  expect(texts.join(' ')).toContain('You have been on Reddit for 20 min.');
 });

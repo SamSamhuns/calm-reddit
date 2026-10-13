@@ -4,7 +4,8 @@
 
   // Every checkbox and select is wired by its data-key (a key of CALM_DEFAULTS in settings.js).
   // Unticking a checkbox asks you to wait first, unless it has data-instant.
-  const COOLDOWN_SECONDS = 10;
+  // The wait is a random 8 to 16 s, so it does not become a habit.
+  const cooldownSeconds = () => 8 + Math.floor(Math.random() * 9);
 
   const $ = (sel) => document.querySelector(sel);
   const toggles = [...document.querySelectorAll('input[type="checkbox"][data-key]')];
@@ -51,7 +52,7 @@
     $('#confirm').hidden = false;
     $('#list').inert = true;
     document.querySelector('.top').inert = true;
-    let left = COOLDOWN_SECONDS;
+    let left = cooldownSeconds();
     ok.disabled = true;
     ok.textContent = `Turn off (${left})`;
     clearInterval(countdown);

@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Calm Reddit",
   "short_name": "Calm Reddit",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Makes Reddit less addictive: pages instead of infinite scroll, no recommendations, hidden vote counts and ads, blurred media, comments on demand, a pause before you dive in, and optional page blocking.",
   "minimum_chrome_version": "111",
   "icons": {

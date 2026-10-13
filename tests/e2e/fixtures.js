@@ -56,8 +56,23 @@ async function openReddit(page, urlPath) {
   throw new Error(`Reddit kept showing its bot check for ${urlPath}`);
 }
 
-// The pause and block screens use closed shadow roots, so tests check their hosts and the
+// The pause and block screens and the reminder use closed shadow roots, so tests check their hosts and the
 // attributes bridge.js writes on <html> (data-calm-blocked holds the reason a page is blocked).
 const blockedReason = (page) => page.locator('html').getAttribute('data-calm-blocked');
 
-module.exports = { test, expect: base.expect, openReddit, blockedReason, REDDIT };
+// The text nodes inside one of those screens. Playwright cannot see into a closed shadow root; DevTools can.
+async function shadowTexts(page, selector) {
+  const cdp = await page.context().newCDPSession(page);
+  const { root } = await cdp.send('DOM.getDocument', { depth: 0 });
+  const { nodeId } = await cdp.send('DOM.querySelector', { nodeId: root.nodeId, selector });
+  const texts = [];
+  const walk = (n) => {
+    if (n.nodeType === 3) texts.push(n.nodeValue);
+    for (const child of [...(n.children || []), ...(n.shadowRoots || [])]) walk(child);
+  };
+  walk((await cdp.send('DOM.describeNode', { nodeId, depth: -1, pierce: true })).node);
+  await cdp.detach();
+  return texts;
+}
+
+module.exports = { test, expect: base.expect, openReddit, blockedReason, shadowTexts, REDDIT };

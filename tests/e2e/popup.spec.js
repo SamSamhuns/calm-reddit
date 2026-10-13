@@ -27,7 +27,7 @@ test('unticking a protection asks you to wait first', async ({ page, worker }) =
   expect(await stored(worker, 'blockHome')).toBe(true);
 
   await box.click();
-  await page.locator('#confirm-ok').click({ timeout: 15_000 }); // enabled after the 10 s cool-down
+  await page.locator('#confirm-ok').click({ timeout: 20_000 }); // enabled after the 8 to 16 s cool-down
   await expect(box).not.toBeChecked();
   await expect.poll(() => stored(worker, 'blockHome')).toBe(false);
 });

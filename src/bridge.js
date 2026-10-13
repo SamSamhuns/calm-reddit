@@ -11,13 +11,14 @@
 
   const html = document.documentElement;
   const LAST_ACTIVE = 'calmLastActive';   // chrome.storage.local: last time any Reddit tab was in use
-  const INTENT = 'calmIntent';            // chrome.storage.local: { text, at, dismissed }
+  const INTENT = 'calmIntent';            // chrome.storage.local: { text, at (visit start), dismissed, checkAt }
   const TICK_MS = 20 * 1000;
 
   let settings = { ...CALM_DEFAULTS };
-  let pause = null;   // { host, timer } while the pause screen is up
-  let chip = null;    // { host, text } while the reminder is shown
+  let pause = null;   // { host, timer, checkIn } while the pause screen is up
+  let chip = null;    // { host, at, textEl, timeEl } while the reminder is shown
   let block = null;   // { host, title } while the page is blocked
+  let visit = null;   // the stored INTENT
 
   // Keep the page hidden for the few milliseconds it takes to decide whether to pause.
   html.setAttribute('data-calm-pausing', '');
@@ -27,6 +28,15 @@
   const pauseWanted = () => settings.enabled && settings.pause;
   const awayMs = () => Math.max(1, Number(settings.pauseAwayMinutes) || 15) * 60 * 1000;
   const reveal = () => { if (!pause) html.removeAttribute('data-calm-pausing'); };
+  // During a visit, the pause screen comes back after a random 15 to 25 min to ask if you are still on task.
+  const checkInDelay = () => (15 + Math.random() * 10) * 60 * 1000;
+  const checkInDue = () => pauseWanted() && visible() && !pause && visit?.checkAt && Date.now() >= visit.checkAt;
+
+  // "5 min", "1 h 20 min"
+  function formatStay(ms) {
+    const min = Math.max(1, Math.floor(ms / 60000));
+    return min < 60 ? `${min} min` : `${Math.floor(min / 60)} h ${min % 60} min`;
+  }
 
   function applySettings() {
     const on = (key) => settings.enabled && Boolean(settings[key]);
@@ -144,12 +154,13 @@
     @media (prefers-reduced-motion: reduce) { .ring { animation: none; transform: scale(.85); } }
   `;
 
-  function showPause() {
+  // `checkIn` is the current visit when the screen comes back during a visit; null when you arrive.
+  function showPause(checkIn = null) {
     if (pause) return;
-    pause = { host: null, timer: 0 };
+    pause = { host: null, timer: 0, checkIn };
     html.setAttribute('data-calm-pausing', '');
     for (const media of document.querySelectorAll('video, audio')) { try { media.pause(); } catch { /* ignore */ } }
-    if (alive()) chrome.storage.local.remove(INTENT).catch(() => {}); // a new visit starts with a new intention
+    if (alive() && !checkIn) chrome.storage.local.remove(INTENT).catch(() => {}); // a new visit starts with a new intention
     removeChip();
     whenBody(buildPause);
   }
@@ -180,6 +191,7 @@
       type: 'text', maxlength: '6', autocomplete: 'off', spellcheck: 'false',
       'aria-label': `Solve ${sum.text}`, placeholder: 'Answer',
     });
+    const { checkIn } = pause;
     const count = h('div', { class: 'count' }, String(seconds));
     const cue = h('div', { class: 'cue' }, 'Breathe in…');
     const input = h('input', {
@@ -187,16 +199,19 @@
       'aria-label': 'What did you come to Reddit for?',
       placeholder: 'e.g. check replies on my post in r/homelab',
     });
+    input.value = checkIn?.text || '';
     const go = h('button', { class: 'primary', type: 'button', disabled: '' }, `Continue in ${seconds}s`);
-    const leave = h('button', { class: 'ghost', type: 'button' }, 'Never mind, close tab');
+    const leave = h('button', { class: 'ghost', type: 'button' }, checkIn ? 'Done, close tab' : 'Never mind, close tab');
 
     root.append(h('div', { class: 'backdrop' },
       h('div', { class: 'card', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'calm-title' },
         h('div', { class: 'brand' }, 'Calm Reddit'),
         h('div', { class: 'breath', 'aria-hidden': 'true' }, h('div', { class: 'ring' }), count),
         cue,
-        h('h1', { id: 'calm-title' }, 'Take a breath.'),
-        h('p', { class: 'lede' }, 'What did you come to Reddit for?'),
+        h('h1', { id: 'calm-title' }, checkIn ? 'Still on it?' : 'Take a breath.'),
+        h('p', { class: 'lede' }, checkIn
+          ? `You have been on Reddit for ${formatStay(Date.now() - checkIn.at)}. What are you here for now?`
+          : 'What did you come to Reddit for?'),
         input,
         sum ? h('div', { class: 'sum' }, h('span', {}, sum.text), answer) : '',
         h('div', { class: 'actions' }, leave, go),
@@ -227,13 +242,12 @@
     const proceed = () => {
       if (go.disabled) return;
       const text = input.value.trim().slice(0, 140);
-      if (alive()) {
-        const data = { [LAST_ACTIVE]: Date.now() };
-        if (text) data[INTENT] = { text, at: Date.now(), dismissed: false };
-        chrome.storage.local.set(data).catch(() => {});
-      }
+      const now = Date.now();
+      // Kept also without text: the visit start and the next check-in time live here.
+      visit = { text, at: checkIn?.at ?? now, dismissed: false, checkAt: now + checkInDelay() };
+      if (alive()) chrome.storage.local.set({ [LAST_ACTIVE]: now, [INTENT]: visit }).catch(() => {});
       closePause();
-      if (text) showChip(text);
+      if (text) showChip(visit);
     };
     go.addEventListener('click', proceed);
     for (const el of [input, answer]) el?.addEventListener('keydown', (e) => { if (e.key === 'Enter') proceed(); });
@@ -279,14 +293,17 @@
     button:focus-visible { outline: 2px solid #8fd3c7; outline-offset: 2px; }
   `;
 
-  function showChip(text) {
+  function showChip({ text, at }) {
     if (!pauseWanted() || pause) return;
     if (chip) {
       chip.textEl.textContent = text;
       chip.textEl.title = text;
+      chip.at = at;
+      updateChipTime();
       return;
     }
-    chip = { host: null, textEl: h('span', { class: 'text', title: text }, text) };
+    chip = { host: null, at, textEl: h('span', { class: 'text', title: text }, text), timeEl: h('span', { class: 'label' }) };
+    updateChipTime();
     whenBody(() => {
       if (!chip || chip.host) return;
       const { host, root } = makeHost('calm-reddit-intent', { left: '0', bottom: '0', width: '0', height: '0' });
@@ -303,10 +320,15 @@
         }
         removeChip();
       });
-      root.append(h('div', { class: 'chip', role: 'status' }, h('span', { class: 'label' }, 'Here for:'), chip.textEl, done, dismiss));
+      root.append(h('div', { class: 'chip', role: 'status' }, h('span', { class: 'label' }, 'Here for:'), chip.textEl, chip.timeEl, done, dismiss));
       html.appendChild(host);
       chip.host = host;
     });
+  }
+
+  // How long you have been on Reddit in this visit, next to the reason.
+  function updateChipTime() {
+    if (chip) chip.timeEl.textContent = `· ${formatStay(Date.now() - chip.at)}`;
   }
 
   function removeChip() {
@@ -316,9 +338,10 @@
 
   async function syncChip() {
     if (!alive() || pause) return;
-    let intent = null;
-    try { intent = (await chrome.storage.local.get(INTENT))[INTENT]; } catch { /* ignore */ }
-    if (pauseWanted() && intent && intent.text && !intent.dismissed) showChip(intent.text);
+    visit = null;
+    try { visit = (await chrome.storage.local.get(INTENT))[INTENT] || null; } catch { /* ignore */ }
+    if (checkInDue()) showPause(visit);
+    else if (pauseWanted() && visit?.text && !visit.dismissed) showChip(visit);
     else removeChip();
   }
 
@@ -476,7 +499,12 @@
       syncChip();
     }
 
-    setInterval(() => { if (visible()) markActive(); }, TICK_MS);
+    setInterval(() => {
+      if (!visible()) return;
+      markActive();
+      if (checkInDue()) showPause(visit);
+      else updateChipTime();
+    }, TICK_MS);
     document.addEventListener('visibilitychange', onVisibilityChange);
     window.addEventListener('pagehide', markActive);
     // Reddit changes pages without reloading; the Navigation API reports those too.

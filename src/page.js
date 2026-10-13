@@ -370,6 +370,7 @@
         budget: batchBudget(page),
         filterRecs: !RECOMMENDATION_FEEDS.has(pageKind),
         joinFilter: pageKind === 'home',
+        nextAt: 0,              // performance.now() time when "Next page" unlocks
         pager: null, prev: null, info: null, next: null,
       };
       cameBack = false;
@@ -506,10 +507,11 @@
     const more = st.total > (st.page + 1) * st.size || sentinel;
     const failed = st.stalled >= 3;
     const stuck = !st.filling && (failed || st.budget <= 0) && !pageFull && sentinel;
+    const wait = Math.ceil((st.nextAt - performance.now()) / 1000);
     st.prev.disabled = st.page === 0 || st.filling;
-    st.next.disabled = st.filling || (!more && !stuck);
+    st.next.disabled = st.filling || wait > 0 || (!more && !stuck);
     st.next.dataset.act = stuck ? 'retry' : 'next';
-    setText(st.next, !stuck ? 'Next page →' : failed ? 'Try again' : 'Keep looking');
+    setText(st.next, stuck ? (failed ? 'Try again' : 'Keep looking') : wait > 0 ? `Next page in ${wait}s` : 'Next page →');
     let info = `Page ${st.page + 1}`;
     if (st.filling) info = 'Loading…';
     else if (stuck) info = failed ? `Page ${st.page + 1} · couldn’t load more` : `Page ${st.page + 1} · the rest were hidden`;
@@ -522,12 +524,24 @@
     st.page = page;
     st.stalled = 0;
     st.budget = batchBudget(page);
+    st.nextAt = 0;
     savePage(page);
     layout(st);
     updatePager(st);
     const top = st.feed.getBoundingClientRect().top + window.scrollY - 80;
     window.scrollTo({ top: Math.max(0, top), behavior: 'instant' });
     await fill(st);
+    if (page >= 2) lockNext(st);
+  }
+
+  // From page 3 on, "Next page" unlocks after a random 3 to 6 s, so each new page is a choice.
+  function lockNext(st) {
+    st.nextAt = performance.now() + (3 + Math.random() * 3) * 1000;
+    const timer = setInterval(() => {
+      if (feedState === st) updatePager(st);
+      if (feedState !== st || performance.now() >= st.nextAt) clearInterval(timer);
+    }, 250);
+    updatePager(st);
   }
 
   const upgraded = (el) => Promise.race([customElements.whenDefined(el.localName), sleep(4000)]);
