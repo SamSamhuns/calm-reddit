@@ -14,7 +14,7 @@ On by default:
 - **No ads:** promoted posts and ad slots are hidden.
 - **Calmer media:** images and videos in feeds are blurred until you hover over them, and nothing autoplays.
 - **Comments on demand:** post pages open with comments tucked behind a "Show comments" button.
-- **A pause on the way in:** when you arrive after 15+ minutes away, a screen asks what you came for. It stays for a random 8 to 16 seconds, and sometimes asks you to solve a quick sum first, so you can't just wait it out by habit. What you write stays in the corner as a reminder, with how long you have been on Reddit. During a long visit, the screen comes back after a random 15 to 25 minutes to ask if you are still on task.
+- **A pause on the way in:** when you arrive after 15+ minutes away, a screen asks what you came for. It stays for a random 8 to 16 seconds, and sometimes asks you to solve a quick sum first, so you can't just wait it out by habit. What you write stays in the corner as a reminder, with how long you have been on Reddit. During a long visit, the screen comes back after a random 15 to 25 minutes to ask if you are still on task. The popup lists your last 1000 reasons. They stay on this device and are not synced.
 - **Turning any protection off** in the popup makes you wait a random 8 to 16 seconds first.
 
 Optional, in the popup:
@@ -55,7 +55,7 @@ For a quick test on a Mac without Xcode, use **Safari › Settings › Developer
 
 ## If something slips through
 
-Reddit changes its page structure from time to time. Open a Reddit tab where the problem shows, click the Calm Reddit icon, then **Copy diagnostics** at the bottom of the popup and send the result to whoever maintains your copy. It contains your Calm Reddit settings (including your subreddit list) and page-structure details (element names and counts), but no post titles or usernames. It's only copied to your clipboard; nothing is sent anywhere.
+Reddit changes its page structure from time to time. Open a Reddit tab where the problem shows, click the Calm Reddit icon, then **Copy diagnostics** at the bottom of the popup and send the result to whoever maintains your copy. It contains your Calm Reddit settings (including your subreddit list) and page-structure details (element names and counts), but no post titles, usernames or past reasons. It's only copied to your clipboard; nothing is sent anywhere.
 
 ## Development
 
@@ -69,14 +69,15 @@ The popup and the welcome page show Chrome or Safari wording from `data-browser=
 | --- | --- | --- |
 | `src/settings.js` | content script, popup, welcome page | `CALM_DEFAULTS` (every setting and its default) and `CALM_FEATURES` (setting → token on `<html>`) |
 | `src/blocking.js` | content script, popup | Pure rules: which URLs are blocked, parsing the subreddit list |
-| `src/bridge.js` | content script (isolated world) | Mirrors settings onto `<html data-calm-*>`, pause screen (on arrival and as a check-in during a visit), intention reminder with the time on Reddit, blocked-page screen |
+| `src/bridge.js` | content script (isolated world) | Mirrors settings onto `<html data-calm-*>`, pause screen (on arrival and as a check-in during a visit), intention reminder with the time on Reddit, history of your reasons, blocked-page screen |
 | `src/page.js` | Reddit's own JS world (`"world": "MAIN"`) | Pagination, shadow-DOM styles, autoplay blocking, flagging recommended / video posts, comments gate |
 | `src/calm.css` | injected before Reddit renders | Everything that can be done with CSS, keyed off the `<html>` attributes |
-| `popup/` | toolbar popup | Settings UI; every `input`/`select` with a `data-key` is wired automatically |
+| `popup/` | toolbar popup | Settings UI; every `input`/`select` with a `data-key` is wired automatically. Also lists your past reasons |
 | `scripts/build.js` | Node, `npm run build` | Writes `dist/chrome` and `dist/safari` with each browser's manifest changes |
 | `safari/` | Xcode | Mac and iOS app that carries the Safari extension |
 
 Settings flow: popup → `chrome.storage.sync` → `bridge.js` → `<html data-calm-off="…" data-calm-on="…">` → `calm.css` and `page.js`.
+Visit data (last time on Reddit, the current reason, the history of reasons) is in `chrome.storage.local`, so it stays on each device.
 Protections (default on) are listed in `data-calm-off` while turned off, so they apply before settings load. Opt-in extras are listed in `data-calm-on` while turned on.
 
 ### Adding a setting

@@ -3,6 +3,7 @@
  *  - Mirrors your settings onto <html data-calm-*> so calm.css and page.js react instantly.
  *  - Shows the pause screen when you arrive on Reddit after being away.
  *  - Keeps a small "You came here for…" reminder in the corner.
+ *  - Adds each reason to a history on this device, which the popup shows.
  *  - Covers pages you've blocked (rules in blocking.js) with a short note.
  */
 (() => {
@@ -12,6 +13,7 @@
   const html = document.documentElement;
   const LAST_ACTIVE = 'calmLastActive';   // chrome.storage.local: last time any Reddit tab was in use
   const INTENT = 'calmIntent';            // chrome.storage.local: { text, at (visit start), dismissed, checkAt }
+  const HISTORY = 'calmHistory';          // chrome.storage.local: [{ text, at }], oldest first
   const TICK_MS = 20 * 1000;
 
   let settings = { ...CALM_DEFAULTS };
@@ -246,6 +248,12 @@
       // Kept also without text: the visit start and the next check-in time live here.
       visit = { text, at: checkIn?.at ?? now, dismissed: false, checkAt: now + checkInDelay() };
       if (alive()) chrome.storage.local.set({ [LAST_ACTIVE]: now, [INTENT]: visit }).catch(() => {});
+      // The popup shows your last 1000 reasons. A check-in adds one only when you change the reason.
+      if (alive() && text && text !== checkIn?.text) {
+        chrome.storage.local.get(HISTORY)
+          .then((got) => chrome.storage.local.set({ [HISTORY]: [...(got[HISTORY] || []), { text, at: now }].slice(-1000) }))
+          .catch(() => {});
+      }
       closePause();
       if (text) showChip(visit);
     };

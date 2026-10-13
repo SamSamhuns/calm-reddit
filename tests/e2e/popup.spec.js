@@ -58,6 +58,16 @@ test('the subreddit list is cleaned up and saved', async ({ page, worker }) => {
   expect(await stored(worker, 'subredditMode')).toBe('allow');
 });
 
+test('the popup lists past reasons, newest first', async ({ page, worker }) => {
+  await worker.evaluate(() => chrome.storage.local.set({ calmHistory: [
+    { text: 'read one thread', at: Date.now() - 60_000 },
+    { text: 'check replies on my post', at: Date.now() },
+  ] }));
+  await page.reload();
+  await page.getByText('Your past reasons').click();
+  await expect(page.locator('#history li')).toContainText(['check replies on my post', 'read one thread']);
+});
+
 test('number settings are saved as numbers', async ({ page, worker }) => {
   await page.getByLabel('Posts per page').selectOption('25');
   await expect.poll(() => stored(worker, 'pageSize')).toBe(25);

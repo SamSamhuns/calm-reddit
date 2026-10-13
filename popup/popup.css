@@ -139,6 +139,14 @@ select {
   border-radius: 6px;
 }
 
+/* Past reasons */
+.history summary { font-weight: 600; cursor: pointer; }
+.history .desc { margin: 4px 0 6px; }
+.history ol { list-style: none; margin: 0; padding: 0; max-height: 220px; overflow-y: auto; }
+.history li { overflow-wrap: anywhere; }
+.history li + li { margin-top: 6px; }
+.history time { display: block; color: var(--muted); font-size: 11.5px; }
+
 /* Cool-down confirm (sticky, so it's visible from anywhere in the list) */
 .confirm {
   position: sticky;

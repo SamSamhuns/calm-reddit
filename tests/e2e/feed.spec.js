@@ -117,7 +117,7 @@ test('post pages keep comments behind a button', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('data-calm-comments-open', '');
 });
 
-test('the pause screen asks for an intention and keeps it as a reminder', async ({ page, worker }) => {
+test('the pause screen asks for an intention and keeps it as a reminder and in the history', async ({ page, worker }) => {
   await worker.evaluate(() => chrome.storage.local.remove('calmLastActive')); // "been away a long time"
   await openReddit(page, SUB);
 
@@ -142,6 +142,8 @@ test('the pause screen asks for an intention and keeps it as a reminder', async 
   expect(await shadowTexts(page, '#calm-reddit-intent')).toEqual(expect.arrayContaining(['check r/aww for one minute', '· 1 min']));
   const intent = await worker.evaluate(() => chrome.storage.local.get('calmIntent'));
   expect(intent.calmIntent.text).toBe('check r/aww for one minute');
+  await expect.poll(() => worker.evaluate(() => chrome.storage.local.get('calmHistory').then((s) => s.calmHistory)))
+    .toEqual([{ text: 'check r/aww for one minute', at: expect.any(Number) }]);
 });
 
 test('the pause screen comes back to check in during a long visit', async ({ page, worker }) => {

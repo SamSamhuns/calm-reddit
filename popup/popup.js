@@ -1,4 +1,4 @@
-/* Calm Reddit: toolbar popup. Settings live in chrome.storage.sync. */
+/* Calm Reddit: toolbar popup. Settings live in chrome.storage.sync, your past reasons in chrome.storage.local. */
 (() => {
   'use strict';
 
@@ -147,6 +147,18 @@
       btn.textContent = 'Press Ctrl/Cmd+C to copy';
     }
     setTimeout(() => { btn.textContent = 'Copy diagnostics'; }, 4000);
+  });
+
+  // The reasons you gave on the pause screen (bridge.js adds them), newest first.
+  chrome.storage.local.get('calmHistory').then(({ calmHistory = [] }) => {
+    $('#history ol').append(...calmHistory.toReversed().map(({ text, at }) => {
+      const time = document.createElement('time');
+      time.dateTime = new Date(at).toISOString();
+      time.textContent = new Date(at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+      const li = document.createElement('li');
+      li.append(time, text);
+      return li;
+    }));
   });
 
   chrome.storage.sync.get(CALM_DEFAULTS).then((stored) => {
