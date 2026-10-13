@@ -32,9 +32,26 @@ Optional, in the popup:
 4. On the Calm Reddit card click **Details** and switch on **Allow in Incognito**. Chrome turns extensions off in Incognito unless you do this.
 5. Pin it from the puzzle-piece menu so you can open its settings.
 
+## Install (Safari on Mac, iPhone, iPad)
+
+Safari 18 or later. Safari runs extensions only inside an app, so you build a small app with Xcode.
+
+1. Install Xcode and Node.js. In this folder, run `npm run build`. This writes the Safari version to `dist/safari`.
+2. Open `safari/Calm Reddit/Calm Reddit.xcodeproj` in Xcode.
+3. **Mac:** select the **Calm Reddit (macOS)** scheme and click Run. Then, in Safari:
+   - **Settings › Advanced:** tick **Show features for web developers**.
+   - **Settings › Developer:** tick **Allow unsigned extensions**. Safari forgets this when it quits. Signing the app with your Apple developer team in Xcode (**Signing & Capabilities**) removes this step.
+   - **Settings › Extensions:** turn on Calm Reddit and tick **Allow in Private Browsing**.
+4. **iPhone or iPad:** select the **Calm Reddit (iOS)** scheme and a simulator or your device, then click Run. A real device needs an Apple Developer Program membership. On the device, open **Settings › Apps › Safari › Extensions › Calm Reddit**, turn it on, and switch on **Allow in Private Browsing**.
+5. Open reddit.com, open Calm Reddit from the toolbar (Mac) or the page menu in the address bar (iPhone, iPad), and choose **Always Allow on This Website**. Safari does not let an extension change a website until you do this.
+
+For a quick test on a Mac without Xcode, use **Safari › Settings › Developer › Add Temporary Extension…** and select `dist/safari`. Safari removes it after 24 hours or when it quits.
+
 ## Updating
 
-Replace the files in the same folder (this keeps your settings and the Incognito permission), press the reload arrow on the Calm Reddit card in `chrome://extensions`, then refresh any open Reddit tabs.
+**Chrome:** replace the files in the same folder (this keeps your settings and the Incognito permission), press the reload arrow on the Calm Reddit card in `chrome://extensions`, then refresh any open Reddit tabs.
+
+**Safari:** run `npm run build`, click Run in Xcode again, then refresh any open Reddit tabs.
 
 ## If something slips through
 
@@ -42,7 +59,11 @@ Reddit changes its page structure from time to time. Open a Reddit tab where the
 
 ## Development
 
-Plain JavaScript, no build step: Chrome loads the files as they are.
+Plain JavaScript. Chrome loads the files as they are. `npm run build` copies the same files into `dist/chrome` and `dist/safari`. The only difference is the manifest: `scripts/build.js` changes it for each browser.
+
+The Xcode project in `safari/` wraps `dist/safari` in a Mac and iOS app. It refers to the `dist/safari` folders, so new files there are included without changes in Xcode. It was made once with `xcrun safari-web-extension-packager dist/safari --project-location safari --app-name "Calm Reddit" --bundle-identifier com.calmreddit.CalmReddit --swift`. Use your own bundle identifier before you publish to the App Store.
+
+The popup and the welcome page show Chrome or Safari wording from `data-browser="chrome|safari"` on their elements.
 
 | File | Runs in | Job |
 | --- | --- | --- |
@@ -52,6 +73,8 @@ Plain JavaScript, no build step: Chrome loads the files as they are.
 | `src/page.js` | Reddit's own JS world (`"world": "MAIN"`) | Pagination, shadow-DOM styles, autoplay blocking, flagging recommended / video posts, comments gate |
 | `src/calm.css` | injected before Reddit renders | Everything that can be done with CSS, keyed off the `<html>` attributes |
 | `popup/` | toolbar popup | Settings UI; every `input`/`select` with a `data-key` is wired automatically |
+| `scripts/build.js` | Node, `npm run build` | Writes `dist/chrome` and `dist/safari` with each browser's manifest changes |
+| `safari/` | Xcode | Mac and iOS app that carries the Safari extension |
 
 Settings flow: popup → `chrome.storage.sync` → `bridge.js` → `<html data-calm-off="…" data-calm-on="…">` → `calm.css` and `page.js`.
 Protections (default on) are listed in `data-calm-off` while turned off, so they apply before settings load. Opt-in extras are listed in `data-calm-on` while turned on.

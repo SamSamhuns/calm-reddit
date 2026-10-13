@@ -1,0 +1,943 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 110;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		9F21D23E307E48AF00DED32D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F21D23D307E48AF00DED32D /* AppDelegate.swift */; };
+		9F21D240307E48AF00DED32D /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F21D23F307E48AF00DED32D /* SceneDelegate.swift */; };
+		9F21D243307E48AF00DED32D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9F21D241307E48AF00DED32D /* LaunchScreen.storyboard */; };
+		9F21D246307E48AF00DED32D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9F21D244307E48AF00DED32D /* Main.storyboard */; };
+		9F21D24F307E48AF00DED32D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F21D24E307E48AF00DED32D /* AppDelegate.swift */; };
+		9F21D252307E48AF00DED32D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9F21D250307E48AF00DED32D /* Main.storyboard */; };
+		9F21D259307E48AF00DED32D /* Calm Reddit Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 9F21D258307E48AF00DED32D /* Calm Reddit Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		9F21D263307E48AF00DED32D /* Calm Reddit Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 9F21D262307E48AF00DED32D /* Calm Reddit Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		9F21D268307E48AF00DED32D /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = 9F21D22D307E48AE00DED32D /* Main.html */; };
+		9F21D269307E48AF00DED32D /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = 9F21D22D307E48AE00DED32D /* Main.html */; };
+		9F21D26A307E48AF00DED32D /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 9F21D22F307E48AE00DED32D /* Icon.png */; };
+		9F21D26B307E48AF00DED32D /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 9F21D22F307E48AE00DED32D /* Icon.png */; };
+		9F21D26C307E48AF00DED32D /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = 9F21D230307E48AE00DED32D /* Style.css */; };
+		9F21D26D307E48AF00DED32D /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = 9F21D230307E48AE00DED32D /* Style.css */; };
+		9F21D26E307E48AF00DED32D /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = 9F21D231307E48AE00DED32D /* Script.js */; };
+		9F21D26F307E48AF00DED32D /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = 9F21D231307E48AE00DED32D /* Script.js */; };
+		9F21D270307E48AF00DED32D /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F21D232307E48AE00DED32D /* ViewController.swift */; };
+		9F21D271307E48AF00DED32D /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F21D232307E48AE00DED32D /* ViewController.swift */; };
+		9F21D272307E48AF00DED32D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9F21D233307E48AF00DED32D /* Assets.xcassets */; };
+		9F21D273307E48AF00DED32D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9F21D233307E48AF00DED32D /* Assets.xcassets */; };
+		9F21D274307E48AF00DED32D /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F21D235307E48AF00DED32D /* SafariWebExtensionHandler.swift */; };
+		9F21D275307E48AF00DED32D /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F21D235307E48AF00DED32D /* SafariWebExtensionHandler.swift */; };
+		9F21D28C307E48B000DED32D /* popup in Resources */ = {isa = PBXBuildFile; fileRef = 9F21D287307E48B000DED32D /* popup */; };
+		9F21D28D307E48B000DED32D /* welcome in Resources */ = {isa = PBXBuildFile; fileRef = 9F21D288307E48B000DED32D /* welcome */; };
+		9F21D28E307E48B000DED32D /* icons in Resources */ = {isa = PBXBuildFile; fileRef = 9F21D289307E48B000DED32D /* icons */; };
+		9F21D28F307E48B000DED32D /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 9F21D28A307E48B000DED32D /* manifest.json */; };
+		9F21D290307E48B000DED32D /* src in Resources */ = {isa = PBXBuildFile; fileRef = 9F21D28B307E48B000DED32D /* src */; };
+		9F21D291307E48B000DED32D /* popup in Resources */ = {isa = PBXBuildFile; fileRef = 9F21D287307E48B000DED32D /* popup */; };
+		9F21D292307E48B000DED32D /* welcome in Resources */ = {isa = PBXBuildFile; fileRef = 9F21D288307E48B000DED32D /* welcome */; };
+		9F21D293307E48B000DED32D /* icons in Resources */ = {isa = PBXBuildFile; fileRef = 9F21D289307E48B000DED32D /* icons */; };
+		9F21D294307E48B000DED32D /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 9F21D28A307E48B000DED32D /* manifest.json */; };
+		9F21D295307E48B000DED32D /* src in Resources */ = {isa = PBXBuildFile; fileRef = 9F21D28B307E48B000DED32D /* src */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		9F21D25A307E48AF00DED32D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9F21D227307E48AE00DED32D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9F21D257307E48AF00DED32D;
+			remoteInfo = "Calm Reddit Extension (iOS)";
+		};
+		9F21D264307E48AF00DED32D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9F21D227307E48AE00DED32D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9F21D261307E48AF00DED32D;
+			remoteInfo = "Calm Reddit Extension (macOS)";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		9F21D27B307E48AF00DED32D /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = "";
+			dstSubfolder = PlugIns;
+			files = (
+				9F21D259307E48AF00DED32D /* Calm Reddit Extension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+		};
+		9F21D282307E48AF00DED32D /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = "";
+			dstSubfolder = PlugIns;
+			files = (
+				9F21D263307E48AF00DED32D /* Calm Reddit Extension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		9F21D22E307E48AE00DED32D /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = Base; path = Base.lproj/Main.html; sourceTree = "<group>"; };
+		9F21D22F307E48AE00DED32D /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
+		9F21D230307E48AE00DED32D /* Style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = Style.css; sourceTree = "<group>"; };
+		9F21D231307E48AE00DED32D /* Script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = Script.js; sourceTree = "<group>"; };
+		9F21D232307E48AE00DED32D /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		9F21D233307E48AF00DED32D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		9F21D235307E48AF00DED32D /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
+		9F21D23A307E48AF00DED32D /* Calm Reddit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Calm Reddit.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		9F21D23D307E48AF00DED32D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		9F21D23F307E48AF00DED32D /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		9F21D242307E48AF00DED32D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		9F21D245307E48AF00DED32D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		9F21D247307E48AF00DED32D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9F21D24C307E48AF00DED32D /* Calm Reddit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Calm Reddit.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		9F21D24E307E48AF00DED32D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		9F21D251307E48AF00DED32D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		9F21D253307E48AF00DED32D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9F21D258307E48AF00DED32D /* Calm Reddit Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Calm Reddit Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		9F21D25D307E48AF00DED32D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9F21D262307E48AF00DED32D /* Calm Reddit Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Calm Reddit Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		9F21D267307E48AF00DED32D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9F21D287307E48B000DED32D /* popup */ = {isa = PBXFileReference; lastKnownFileType = folder; name = popup; path = ../../../dist/safari/popup; sourceTree = "<group>"; };
+		9F21D288307E48B000DED32D /* welcome */ = {isa = PBXFileReference; lastKnownFileType = folder; name = welcome; path = ../../../dist/safari/welcome; sourceTree = "<group>"; };
+		9F21D289307E48B000DED32D /* icons */ = {isa = PBXFileReference; lastKnownFileType = folder; name = icons; path = ../../../dist/safari/icons; sourceTree = "<group>"; };
+		9F21D28A307E48B000DED32D /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = manifest.json; path = ../../../dist/safari/manifest.json; sourceTree = "<group>"; };
+		9F21D28B307E48B000DED32D /* src */ = {isa = PBXFileReference; lastKnownFileType = folder; name = src; path = ../../../dist/safari/src; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		9F21D237307E48AF00DED32D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+		9F21D249307E48AF00DED32D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+		9F21D255307E48AF00DED32D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+		9F21D25F307E48AF00DED32D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		9F21D226307E48AE00DED32D = {
+			isa = PBXGroup;
+			children = (
+				9F21D22B307E48AE00DED32D /* Shared (App) */,
+				9F21D234307E48AF00DED32D /* Shared (Extension) */,
+				9F21D23C307E48AF00DED32D /* iOS (App) */,
+				9F21D24D307E48AF00DED32D /* macOS (App) */,
+				9F21D25C307E48AF00DED32D /* iOS (Extension) */,
+				9F21D266307E48AF00DED32D /* macOS (Extension) */,
+				9F21D23B307E48AF00DED32D /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		9F21D22B307E48AE00DED32D /* Shared (App) */ = {
+			isa = PBXGroup;
+			children = (
+				9F21D232307E48AE00DED32D /* ViewController.swift */,
+				9F21D233307E48AF00DED32D /* Assets.xcassets */,
+				9F21D22C307E48AE00DED32D /* Resources */,
+			);
+			path = "Shared (App)";
+			sourceTree = "<group>";
+		};
+		9F21D22C307E48AE00DED32D /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				9F21D22D307E48AE00DED32D /* Main.html */,
+				9F21D22F307E48AE00DED32D /* Icon.png */,
+				9F21D230307E48AE00DED32D /* Style.css */,
+				9F21D231307E48AE00DED32D /* Script.js */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		9F21D234307E48AF00DED32D /* Shared (Extension) */ = {
+			isa = PBXGroup;
+			children = (
+				9F21D286307E48B000DED32D /* Resources */,
+				9F21D235307E48AF00DED32D /* SafariWebExtensionHandler.swift */,
+			);
+			path = "Shared (Extension)";
+			sourceTree = "<group>";
+		};
+		9F21D23B307E48AF00DED32D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				9F21D23A307E48AF00DED32D /* Calm Reddit.app */,
+				9F21D24C307E48AF00DED32D /* Calm Reddit.app */,
+				9F21D258307E48AF00DED32D /* Calm Reddit Extension.appex */,
+				9F21D262307E48AF00DED32D /* Calm Reddit Extension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		9F21D23C307E48AF00DED32D /* iOS (App) */ = {
+			isa = PBXGroup;
+			children = (
+				9F21D23D307E48AF00DED32D /* AppDelegate.swift */,
+				9F21D23F307E48AF00DED32D /* SceneDelegate.swift */,
+				9F21D241307E48AF00DED32D /* LaunchScreen.storyboard */,
+				9F21D244307E48AF00DED32D /* Main.storyboard */,
+				9F21D247307E48AF00DED32D /* Info.plist */,
+			);
+			path = "iOS (App)";
+			sourceTree = "<group>";
+		};
+		9F21D24D307E48AF00DED32D /* macOS (App) */ = {
+			isa = PBXGroup;
+			children = (
+				9F21D24E307E48AF00DED32D /* AppDelegate.swift */,
+				9F21D250307E48AF00DED32D /* Main.storyboard */,
+				9F21D253307E48AF00DED32D /* Info.plist */,
+			);
+			path = "macOS (App)";
+			sourceTree = "<group>";
+		};
+		9F21D25C307E48AF00DED32D /* iOS (Extension) */ = {
+			isa = PBXGroup;
+			children = (
+				9F21D25D307E48AF00DED32D /* Info.plist */,
+			);
+			path = "iOS (Extension)";
+			sourceTree = "<group>";
+		};
+		9F21D266307E48AF00DED32D /* macOS (Extension) */ = {
+			isa = PBXGroup;
+			children = (
+				9F21D267307E48AF00DED32D /* Info.plist */,
+			);
+			path = "macOS (Extension)";
+			sourceTree = "<group>";
+		};
+		9F21D286307E48B000DED32D /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				9F21D287307E48B000DED32D /* popup */,
+				9F21D288307E48B000DED32D /* welcome */,
+				9F21D289307E48B000DED32D /* icons */,
+				9F21D28A307E48B000DED32D /* manifest.json */,
+				9F21D28B307E48B000DED32D /* src */,
+			);
+			name = Resources;
+			path = "Shared (Extension)";
+			sourceTree = SOURCE_ROOT;
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		9F21D239307E48AF00DED32D /* Calm Reddit (iOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9F21D27C307E48AF00DED32D /* Build configuration list for PBXNativeTarget "Calm Reddit (iOS)" */;
+			buildPhases = (
+				9F21D236307E48AF00DED32D /* Sources */,
+				9F21D237307E48AF00DED32D /* Frameworks */,
+				9F21D238307E48AF00DED32D /* Resources */,
+				9F21D27B307E48AF00DED32D /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9F21D25B307E48AF00DED32D /* PBXTargetDependency */,
+			);
+			name = "Calm Reddit (iOS)";
+			productName = "Calm Reddit (iOS)";
+			productReference = 9F21D23A307E48AF00DED32D /* Calm Reddit.app */;
+			productType = "com.apple.product-type.application";
+		};
+		9F21D24B307E48AF00DED32D /* Calm Reddit (macOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9F21D283307E48AF00DED32D /* Build configuration list for PBXNativeTarget "Calm Reddit (macOS)" */;
+			buildPhases = (
+				9F21D248307E48AF00DED32D /* Sources */,
+				9F21D249307E48AF00DED32D /* Frameworks */,
+				9F21D24A307E48AF00DED32D /* Resources */,
+				9F21D282307E48AF00DED32D /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9F21D265307E48AF00DED32D /* PBXTargetDependency */,
+			);
+			name = "Calm Reddit (macOS)";
+			productName = "Calm Reddit (macOS)";
+			productReference = 9F21D24C307E48AF00DED32D /* Calm Reddit.app */;
+			productType = "com.apple.product-type.application";
+		};
+		9F21D257307E48AF00DED32D /* Calm Reddit Extension (iOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9F21D278307E48AF00DED32D /* Build configuration list for PBXNativeTarget "Calm Reddit Extension (iOS)" */;
+			buildPhases = (
+				9F21D254307E48AF00DED32D /* Sources */,
+				9F21D255307E48AF00DED32D /* Frameworks */,
+				9F21D256307E48AF00DED32D /* Resources */,
+			);
+			buildRules = (
+			);
+			name = "Calm Reddit Extension (iOS)";
+			productName = "Calm Reddit Extension (iOS)";
+			productReference = 9F21D258307E48AF00DED32D /* Calm Reddit Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		9F21D261307E48AF00DED32D /* Calm Reddit Extension (macOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9F21D27F307E48AF00DED32D /* Build configuration list for PBXNativeTarget "Calm Reddit Extension (macOS)" */;
+			buildPhases = (
+				9F21D25E307E48AF00DED32D /* Sources */,
+				9F21D25F307E48AF00DED32D /* Frameworks */,
+				9F21D260307E48AF00DED32D /* Resources */,
+			);
+			buildRules = (
+			);
+			name = "Calm Reddit Extension (macOS)";
+			productName = "Calm Reddit Extension (macOS)";
+			productReference = 9F21D262307E48AF00DED32D /* Calm Reddit Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		9F21D227307E48AE00DED32D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2700;
+				LastUpgradeCheck = 2700;
+				TargetAttributes = {
+					9F21D239307E48AF00DED32D = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					9F21D24B307E48AF00DED32D = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					9F21D257307E48AF00DED32D = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					9F21D261307E48AF00DED32D = {
+						CreatedOnToolsVersion = 27.0;
+					};
+				};
+			};
+			buildConfigurationList = 9F21D22A307E48AE00DED32D /* Build configuration list for PBXProject "Calm Reddit" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 9F21D226307E48AE00DED32D;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 9F21D23B307E48AF00DED32D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				9F21D239307E48AF00DED32D /* Calm Reddit (iOS) */,
+				9F21D24B307E48AF00DED32D /* Calm Reddit (macOS) */,
+				9F21D257307E48AF00DED32D /* Calm Reddit Extension (iOS) */,
+				9F21D261307E48AF00DED32D /* Calm Reddit Extension (macOS) */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		9F21D238307E48AF00DED32D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+				9F21D26A307E48AF00DED32D /* Icon.png in Resources */,
+				9F21D243307E48AF00DED32D /* LaunchScreen.storyboard in Resources */,
+				9F21D268307E48AF00DED32D /* Main.html in Resources */,
+				9F21D26E307E48AF00DED32D /* Script.js in Resources */,
+				9F21D272307E48AF00DED32D /* Assets.xcassets in Resources */,
+				9F21D246307E48AF00DED32D /* Main.storyboard in Resources */,
+				9F21D26C307E48AF00DED32D /* Style.css in Resources */,
+			);
+		};
+		9F21D24A307E48AF00DED32D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+				9F21D26B307E48AF00DED32D /* Icon.png in Resources */,
+				9F21D26D307E48AF00DED32D /* Style.css in Resources */,
+				9F21D252307E48AF00DED32D /* Main.storyboard in Resources */,
+				9F21D26F307E48AF00DED32D /* Script.js in Resources */,
+				9F21D273307E48AF00DED32D /* Assets.xcassets in Resources */,
+				9F21D269307E48AF00DED32D /* Main.html in Resources */,
+			);
+		};
+		9F21D256307E48AF00DED32D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+				9F21D294307E48B000DED32D /* manifest.json in Resources */,
+				9F21D293307E48B000DED32D /* icons in Resources */,
+				9F21D291307E48B000DED32D /* popup in Resources */,
+				9F21D292307E48B000DED32D /* welcome in Resources */,
+				9F21D295307E48B000DED32D /* src in Resources */,
+			);
+		};
+		9F21D260307E48AF00DED32D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+				9F21D28F307E48B000DED32D /* manifest.json in Resources */,
+				9F21D28E307E48B000DED32D /* icons in Resources */,
+				9F21D28C307E48B000DED32D /* popup in Resources */,
+				9F21D28D307E48B000DED32D /* welcome in Resources */,
+				9F21D290307E48B000DED32D /* src in Resources */,
+			);
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		9F21D236307E48AF00DED32D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+				9F21D270307E48AF00DED32D /* ViewController.swift in Sources */,
+				9F21D23E307E48AF00DED32D /* AppDelegate.swift in Sources */,
+				9F21D240307E48AF00DED32D /* SceneDelegate.swift in Sources */,
+			);
+		};
+		9F21D248307E48AF00DED32D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+				9F21D271307E48AF00DED32D /* ViewController.swift in Sources */,
+				9F21D24F307E48AF00DED32D /* AppDelegate.swift in Sources */,
+			);
+		};
+		9F21D254307E48AF00DED32D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+				9F21D274307E48AF00DED32D /* SafariWebExtensionHandler.swift in Sources */,
+			);
+		};
+		9F21D25E307E48AF00DED32D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+				9F21D275307E48AF00DED32D /* SafariWebExtensionHandler.swift in Sources */,
+			);
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		9F21D25B307E48AF00DED32D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9F21D257307E48AF00DED32D /* Calm Reddit Extension (iOS) */;
+			targetProxy = 9F21D25A307E48AF00DED32D /* PBXContainerItemProxy */;
+		};
+		9F21D265307E48AF00DED32D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9F21D261307E48AF00DED32D /* Calm Reddit Extension (macOS) */;
+			targetProxy = 9F21D264307E48AF00DED32D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		9F21D22D307E48AE00DED32D /* Main.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				9F21D22E307E48AE00DED32D /* Base */,
+			);
+			name = Main.html;
+			sourceTree = "<group>";
+		};
+		9F21D241307E48AF00DED32D /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				9F21D242307E48AF00DED32D /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+		9F21D244307E48AF00DED32D /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				9F21D245307E48AF00DED32D /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		9F21D250307E48AF00DED32D /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				9F21D251307E48AF00DED32D /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		9F21D276307E48AF00DED32D /* Debug configuration for PBXProject "Calm Reddit" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		9F21D277307E48AF00DED32D /* Release configuration for PBXProject "Calm Reddit" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		9F21D279307E48AF00DED32D /* Debug configuration for PBXNativeTarget "Calm Reddit Extension (iOS)" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Calm Reddit Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.calmreddit.CalmReddit.Extension;
+				PRODUCT_NAME = "Calm Reddit Extension";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		9F21D27A307E48AF00DED32D /* Release configuration for PBXNativeTarget "Calm Reddit Extension (iOS)" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Calm Reddit Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.calmreddit.CalmReddit.Extension;
+				PRODUCT_NAME = "Calm Reddit Extension";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		9F21D27D307E48AF00DED32D /* Debug configuration for PBXNativeTarget "Calm Reddit (iOS)" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Calm Reddit";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.calmreddit.CalmReddit;
+				PRODUCT_NAME = "Calm Reddit";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		9F21D27E307E48AF00DED32D /* Release configuration for PBXNativeTarget "Calm Reddit (iOS)" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Calm Reddit";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.calmreddit.CalmReddit;
+				PRODUCT_NAME = "Calm Reddit";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		9F21D280307E48AF00DED32D /* Debug configuration for PBXNativeTarget "Calm Reddit Extension (macOS)" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Calm Reddit Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.calmreddit.CalmReddit.Extension;
+				PRODUCT_NAME = "Calm Reddit Extension";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		9F21D281307E48AF00DED32D /* Release configuration for PBXNativeTarget "Calm Reddit Extension (macOS)" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Calm Reddit Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.calmreddit.CalmReddit.Extension;
+				PRODUCT_NAME = "Calm Reddit Extension";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		9F21D284307E48AF00DED32D /* Debug configuration for PBXNativeTarget "Calm Reddit (macOS)" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Calm Reddit";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.calmreddit.CalmReddit;
+				PRODUCT_NAME = "Calm Reddit";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		9F21D285307E48AF00DED32D /* Release configuration for PBXNativeTarget "Calm Reddit (macOS)" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Calm Reddit";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.calmreddit.CalmReddit;
+				PRODUCT_NAME = "Calm Reddit";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		9F21D22A307E48AE00DED32D /* Build configuration list for PBXProject "Calm Reddit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9F21D276307E48AF00DED32D /* Debug configuration for PBXProject "Calm Reddit" */,
+				9F21D277307E48AF00DED32D /* Release configuration for PBXProject "Calm Reddit" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		9F21D278307E48AF00DED32D /* Build configuration list for PBXNativeTarget "Calm Reddit Extension (iOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9F21D279307E48AF00DED32D /* Debug configuration for PBXNativeTarget "Calm Reddit Extension (iOS)" */,
+				9F21D27A307E48AF00DED32D /* Release configuration for PBXNativeTarget "Calm Reddit Extension (iOS)" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		9F21D27C307E48AF00DED32D /* Build configuration list for PBXNativeTarget "Calm Reddit (iOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9F21D27D307E48AF00DED32D /* Debug configuration for PBXNativeTarget "Calm Reddit (iOS)" */,
+				9F21D27E307E48AF00DED32D /* Release configuration for PBXNativeTarget "Calm Reddit (iOS)" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		9F21D27F307E48AF00DED32D /* Build configuration list for PBXNativeTarget "Calm Reddit Extension (macOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9F21D280307E48AF00DED32D /* Debug configuration for PBXNativeTarget "Calm Reddit Extension (macOS)" */,
+				9F21D281307E48AF00DED32D /* Release configuration for PBXNativeTarget "Calm Reddit Extension (macOS)" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		9F21D283307E48AF00DED32D /* Build configuration list for PBXNativeTarget "Calm Reddit (macOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9F21D284307E48AF00DED32D /* Debug configuration for PBXNativeTarget "Calm Reddit (macOS)" */,
+				9F21D285307E48AF00DED32D /* Release configuration for PBXNativeTarget "Calm Reddit (macOS)" */,
+			);
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 9F21D227307E48AE00DED32D /* Project object */;
+	validationLevel = 1;
+}

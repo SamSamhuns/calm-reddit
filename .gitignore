@@ -26,6 +26,9 @@ blob-report/
 playwright/.cache/
 coverage/
 
+# Xcode (Safari app wrapper)
+xcuserdata/
+
 # Packaged extension builds
 dist/
 *.zip
