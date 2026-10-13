@@ -36,7 +36,7 @@ Replace the files in the same folder (this keeps your settings and the Incognito
 
 ## If something slips through
 
-Reddit changes its page structure from time to time. Open a Reddit tab where the problem shows, click the Calm Reddit icon, then **Copy diagnostics** at the bottom of the popup and send the result to whoever maintains your copy. It contains page-structure details only (element names and counts), no post titles or usernames.
+Reddit changes its page structure from time to time. Open a Reddit tab where the problem shows, click the Calm Reddit icon, then **Copy diagnostics** at the bottom of the popup and send the result to whoever maintains your copy. It contains your Calm Reddit settings (including your subreddit list) and page-structure details (element names and counts), but no post titles or usernames. It's only copied to your clipboard; nothing is sent anywhere.
 
 ## Development
 

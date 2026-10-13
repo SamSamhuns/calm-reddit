@@ -38,8 +38,9 @@
     refreshBlock();
   }
 
-  async function awayTooLong() {
-    const got = await chrome.storage.local.get(LAST_ACTIVE);
+  // `read` lets init() start the storage read early, before the settings it compares against are in.
+  async function awayTooLong(read = chrome.storage.local.get(LAST_ACTIVE)) {
+    const got = await read;
     return Date.now() - (Number(got[LAST_ACTIVE]) || 0) > awayMs();
   }
 
@@ -422,6 +423,9 @@
 
   async function init() {
     if (alive()) listenForDiagnostics();
+    // Read alongside the settings: the page stays hidden until both are back.
+    const lastActive = Promise.resolve().then(() => chrome.storage.local.get(LAST_ACTIVE));
+    lastActive.catch(() => {}); // only awaited when the pause is wanted
     try {
       settings = { ...CALM_DEFAULTS, ...(await chrome.storage.sync.get(CALM_DEFAULTS)) };
     } catch {
@@ -433,7 +437,7 @@
 
     let needsPause = false;
     if (pauseWanted()) {
-      try { needsPause = await awayTooLong(); } catch { needsPause = false; }
+      try { needsPause = await awayTooLong(lastActive); } catch { needsPause = false; }
     }
     if (needsPause) {
       showPause();

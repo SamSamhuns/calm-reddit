@@ -165,6 +165,8 @@
 
   /* ================================================================ 2. styles inside shadow roots */
 
+  // This sheet is adopted by every shadow root on the page, so keep its selectors cheap:
+  // Chrome checks a compound selector left to right, so put the cheap sibling test before :not(:has(…)).
   const shadowSheet = new CSSStyleSheet();
   const SHADOW_RULES = {
     counts: `
@@ -174,7 +176,7 @@
     recs: `
       #reddit-trending-searches-partial-container,
       [id*="trending-searches" i],
-      div:not(:has(input, a, li, ul)):has(+ #reddit-trending-searches-partial-container) { display: none !important; }
+      div:has(+ #reddit-trending-searches-partial-container):not(:has(input, a, li, ul)) { display: none !important; }
     `,
   };
   function updateShadowSheet() {
@@ -494,6 +496,9 @@
     st.pager = nav;
   }
 
+  // Text is only written when it changes: each write is a DOM mutation, which schedules another refresh.
+  const setText = (el, text) => { if (el.textContent !== text) el.textContent = text; };
+
   function updatePager(st) {
     if (!st.pager) return;
     const pageFull = st.total >= (st.page + 1) * st.size;
@@ -504,12 +509,12 @@
     st.prev.disabled = st.page === 0 || st.filling;
     st.next.disabled = st.filling || (!more && !stuck);
     st.next.dataset.act = stuck ? 'retry' : 'next';
-    st.next.textContent = !stuck ? 'Next page →' : failed ? 'Try again' : 'Keep looking';
+    setText(st.next, !stuck ? 'Next page →' : failed ? 'Try again' : 'Keep looking');
     let info = `Page ${st.page + 1}`;
     if (st.filling) info = 'Loading…';
     else if (stuck) info = failed ? `Page ${st.page + 1} · couldn’t load more` : `Page ${st.page + 1} · the rest were hidden`;
     else if (!more) info = `Page ${st.page + 1} · that’s the end`;
-    st.info.textContent = info;
+    setText(st.info, info);
   }
 
   async function goTo(st, page) {
