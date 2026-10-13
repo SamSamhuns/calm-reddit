@@ -111,6 +111,10 @@
   });
   subreddits.addEventListener('change', saveList);
 
+  // Safari has its own wording and no extension settings page to open.
+  const browser = location.protocol === 'safari-web-extension:' ? 'safari' : 'chrome';
+  document.querySelectorAll('[data-browser]').forEach((el) => { el.hidden = el.dataset.browser !== browser; });
+
   // Extensions don't run in Incognito unless you allow it, which would leave the old loophole open.
   chrome.extension.isAllowedIncognitoAccess((allowed) => {
     $('#incognito').hidden = Boolean(allowed);

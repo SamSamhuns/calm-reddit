@@ -4,6 +4,10 @@
   const state = document.getElementById('incognito-state');
   const step = document.getElementById('step-incognito');
 
+  // Safari has its own steps and no extension settings page to open.
+  const browser = location.protocol === 'safari-web-extension:' ? 'safari' : 'chrome';
+  document.querySelectorAll('[data-browser]').forEach((el) => { el.hidden = el.dataset.browser !== browser; });
+
   function check() {
     chrome.extension.isAllowedIncognitoAccess((allowed) => {
       state.textContent = allowed ? 'Done' : 'Not yet';

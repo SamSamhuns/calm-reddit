@@ -20,8 +20,9 @@
   </header>
 
   <div id="incognito" class="notice" hidden>
-    <p><strong>Incognito isn't covered yet.</strong> Turn on <em>Allow in Incognito</em> so Reddit stays calm there too.</p>
-    <button type="button" id="open-details" class="link-btn">Open extension settings</button>
+    <p data-browser="chrome"><strong>Incognito isn't covered yet.</strong> Turn on <em>Allow in Incognito</em> so Reddit stays calm there too.</p>
+    <p data-browser="safari" hidden><strong>Private Browsing isn't covered yet.</strong> In Safari's extension settings, turn on <em>Allow in Private Browsing</em> so Reddit stays calm there too.</p>
+    <button type="button" id="open-details" class="link-btn" data-browser="chrome">Open extension settings</button>
   </div>
 
   <section id="confirm" class="confirm" hidden>

@@ -16,17 +16,26 @@
     </header>
 
     <ol class="steps">
-      <li class="step" id="step-incognito">
-        <div class="step-head">
-          <h2>Allow it in Incognito</h2>
-          <span id="incognito-state" class="pill">Checking…</span>
-        </div>
-        <p>Chrome switches extensions off in Incognito windows unless you allow them, so this step closes the Incognito loophole.</p>
-        <p class="how">Click the button, scroll to <strong>Allow in Incognito</strong>, and switch it on. This page updates when it's done.</p>
-        <button type="button" id="open-details" class="btn primary">Open extension settings</button>
+      <li class="step" data-browser="safari" hidden>
+        <div class="step-head"><h2>Allow it on Reddit</h2></div>
+        <p>Safari asks before an extension can change a website. Open reddit.com, click the Calm Reddit button next to the address bar, and choose <strong>Always Allow on This Website</strong>. The same button opens its settings.</p>
+        <p class="how">On iPhone or iPad, open the page menu in the address bar, tap <strong>Calm Reddit</strong>, then <strong>Always Allow</strong>.</p>
       </li>
 
-      <li class="step">
+      <li class="step" id="step-incognito">
+        <div class="step-head">
+          <h2 data-browser="chrome">Allow it in Incognito</h2>
+          <h2 data-browser="safari" hidden>Allow it in Private Browsing</h2>
+          <span id="incognito-state" class="pill">Checking…</span>
+        </div>
+        <p data-browser="chrome">Chrome switches extensions off in Incognito windows unless you allow them, so this step closes the Incognito loophole.</p>
+        <p class="how" data-browser="chrome">Click the button, scroll to <strong>Allow in Incognito</strong>, and switch it on. This page updates when it's done.</p>
+        <button type="button" id="open-details" class="btn primary" data-browser="chrome">Open extension settings</button>
+        <p data-browser="safari" hidden>Safari switches extensions off in Private Browsing unless you allow them, so this step closes the private-window loophole.</p>
+        <p class="how" data-browser="safari" hidden>On a Mac, open <strong>Safari › Settings › Extensions</strong>, select Calm Reddit, and tick <strong>Allow in Private Browsing</strong>. On iPhone or iPad, open <strong>Settings › Apps › Safari › Extensions › Calm Reddit</strong> and switch on <strong>Allow in Private Browsing</strong>. This page updates when it's done.</p>
+      </li>
+
+      <li class="step" data-browser="chrome">
         <div class="step-head"><h2>Pin it to your toolbar</h2></div>
         <p>Click the puzzle-piece icon next to the address bar and pin <strong>Calm Reddit</strong>. Its popup lets you change page size, pause length and each protection.</p>
       </li>
