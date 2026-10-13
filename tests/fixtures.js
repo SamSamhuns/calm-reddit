@@ -68,6 +68,13 @@ async function openReddit(page, urlPath) {
 // attributes bridge.js writes on <html> (data-calm-blocked holds the reason a page is blocked).
 const blockedReason = (page) => page.locator('html').getAttribute('data-calm-blocked');
 
+// The report page.js gives for "Copy diagnostics", with the landmarks it finds. page.evaluate runs in Reddit's own
+// JS world, as page.js does.
+const pageReport = (page) => page.evaluate(() => new Promise((resolve) => {
+  document.addEventListener('calm:diagnostics', (e) => resolve(JSON.parse(e.detail)), { once: true });
+  document.dispatchEvent(new CustomEvent('calm:diagnose'));
+}));
+
 // The text nodes inside one of those screens. Playwright cannot see into a closed shadow root; DevTools can.
 async function shadowTexts(page, selector) {
   const cdp = await page.context().newCDPSession(page);
@@ -83,4 +90,4 @@ async function shadowTexts(page, selector) {
   return texts;
 }
 
-module.exports = { test, expect: base.expect, openReddit, blockedReason, shadowTexts, REDDIT };
+module.exports = { test, expect: base.expect, openReddit, blockedReason, pageReport, shadowTexts, REDDIT };

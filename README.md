@@ -55,7 +55,9 @@ For a quick test on a Mac without Xcode, use **Safari › Settings › Developer
 
 ## If something slips through
 
-Reddit changes its page structure from time to time. Open a Reddit tab where the problem shows, click the Calm Reddit icon, then **Copy diagnostics** at the bottom of the popup and send the result to whoever maintains your copy. It contains your Calm Reddit settings (including your subreddit list) and page-structure details (element names and counts), but no post titles, usernames or past reasons. It's only copied to your clipboard; nothing is sent anywhere.
+When the Calm Reddit icon shows **!**, Reddit has changed that page, and some protections may not work there until Calm Reddit is updated. The popup names them.
+
+Reddit changes its page structure from time to time. Open a Reddit tab where the problem shows, click the Calm Reddit icon, then **Copy diagnostics** at the bottom of the popup and send the result to whoever maintains your copy. It contains your Calm Reddit settings (including your subreddit list) and page-structure details (element names and counts, and the landmarks it found), but no post titles, usernames or past reasons. It's only copied to your clipboard; nothing is sent anywhere.
 
 ## Development
 
@@ -68,11 +70,12 @@ The popup and the welcome page show Chrome or Safari wording from `data-browser=
 | File | Runs in | Job |
 | --- | --- | --- |
 | `src/settings.js` | content script, popup, welcome page | `CALM_DEFAULTS` (every setting and its default) and `CALM_FEATURES` (setting → token on `<html>`) |
-| `src/blocking.js` | content script, popup | Pure rules: which URLs are blocked, parsing the subreddit list |
-| `src/bridge.js` | content script (isolated world) | Mirrors settings onto `<html data-calm-*>`, pause screen (on arrival and as a check-in during a visit), intention reminder with the time on Reddit, history of your reasons, blocked-page screen |
-| `src/page.js` | Reddit's own JS world (`"world": "MAIN"`) | Pagination, shadow-DOM styles, autoplay blocking, flagging recommended / video posts, comments gate |
+| `src/blocking.js` | content script, popup | Pure rules about Reddit's addresses: page types, post ids, links to one comment, which pages are blocked. Also parses the subreddit list |
+| `src/bridge.js` | content script (isolated world) | Mirrors settings onto `<html data-calm-*>`, pause screen (on arrival and as a check-in during a visit), intention reminder with the time on Reddit, history of your reasons, blocked-page screen. Writes what the address means on `<html data-calm-address>` for `page.js` |
+| `src/page.js` | Reddit's own JS world (`"world": "MAIN"`) | Pagination, shadow-DOM styles, autoplay blocking, flagging recommended / video posts, comments gate, landmarks. Every Reddit name it uses is in its `REDDIT` block |
 | `src/calm.css` | injected before Reddit renders | Everything that can be done with CSS, keyed off the `<html>` attributes |
-| `popup/` | toolbar popup | Settings UI; every `input`/`select` with a `data-key` is wired automatically. Also lists your past reasons |
+| `src/background.js` | service worker | Opens the welcome page on install, closes a tab when asked, and shows **!** on the toolbar icon for a tab with a missing landmark |
+| `popup/` | toolbar popup | Settings UI; every `input`/`select` with a `data-key` is wired automatically. Also lists your past reasons, and the protections that may not work on the open tab |
 | `scripts/build.js` | Node, `npm run build` | Writes `dist/chrome` and `dist/safari` with each browser's manifest changes |
 | `safari/` | Xcode | Mac and iOS app that carries the Safari extension |
 
@@ -88,6 +91,25 @@ Protections (default on) are listed in `data-calm-off` while turned off, so they
 4. For a new blocked page, add the rule to `calmBlockReason` in `src/blocking.js` and a case to `tests/unit/blocking.spec.js`.
 5. Bump `version` in `manifest.json` and `package.json`.
 
+### Keeping up with Reddit
+
+Reddit changes its pages often, so Calm Reddit needs updates. These rules keep each update small:
+
+- **Use the most stable signal:** the page address first, then Reddit's component names and their attributes, then ARIA labels and visible text, then ids, then classes. Never the position on the page or generated class names. Text is matched in English only, so use it last.
+- **Keep each kind of Reddit knowledge in one place:**
+  - Addresses (page types, post ids, links to one comment): `src/blocking.js`. Chrome loads a file into one world only, so `page.js` gets the answers from `bridge.js`, on `<html data-calm-address>`.
+  - What CSS hides: `src/calm.css`. Keep it a static file: the browser injects it before the first paint, and Reddit's scripts cannot remove it.
+  - What the scripts look for: the `REDDIT` block at the top of `src/page.js`. Names that CSS also uses are in both files. `bridge.js` uses one more name, to find your own profile.
+- **Fail open:** when a name stops matching, the protection does nothing, and Reddit keeps working. Never hide content on a guess.
+- **Landmarks:** `LANDMARKS` in `src/page.js` lists what the protections need to find. A landmark counts as missing only when a general signal shows that the page has the thing (for example, links to posts) but the names no longer find it. Then the toolbar icon shows **!**, the popup names the protections that may not work, and the diagnostics show the landmarks.
+
+When Reddit changes something:
+
+1. Run `npm run test:live`. The landmarks test names the landmark that Reddit changed, and the other live tests show which protection broke.
+2. Open that page in Chrome and find the new name with DevTools. **Copy diagnostics** shows how the feed is built.
+3. Change the name in the `REDDIT` block in `src/page.js`, and in `src/calm.css` if CSS uses it too. For a new landmark, add it to `LANDMARKS` and to `tests/e2e/landmarks.spec.js`.
+4. Run `npm test` and `npm run test:live`, then bump the patch version in `manifest.json`, `package.json` and `package-lock.json`.
+
 ### Tests
 
 ```sh
@@ -99,6 +121,6 @@ npm test            # both
 npm run test:live   # live reddit.com in a Chromium window (a few minutes)
 ```
 
-The end-to-end tests (`tests/e2e/`) give every reddit.com address a small stub page (`tests/fixtures.js`). The content scripts run on it as on the real site, so the pause screen, blocked pages and the popup are tested without a window and without network access.
+The end-to-end tests (`tests/e2e/`) give every reddit.com address a small stub page (`tests/fixtures.js`). The content scripts run on it as on the real site, so the pause screen, blocked pages and the popup are tested without a window and without network access. Stub pages shaped like Reddit's test the landmarks.
 
-The live tests (`tests/live/`) check what needs Reddit's real pages: pagination, hidden recommendations, counts, ads and media, and the comments gate. `npm test` leaves them out. They open a real Chromium window, because Reddit answers headless browsers with a "Prove your humanity" page. They need network access, and because they run against the live site, a Reddit redesign can break them. When that happens, look at the failure's trace (`npx playwright show-trace test-results/…/trace.zip`) and the popup's diagnostics.
+The live tests (`tests/live/`) check what needs Reddit's real pages: the landmarks, pagination, hidden recommendations, counts, ads and media, and the comments gate. `npm test` leaves them out. They open a real Chromium window, because Reddit answers headless browsers with a "Prove your humanity" page. They need network access, and because they run against the live site, a Reddit redesign can break them. When that happens, look at the failure's trace (`npx playwright show-trace test-results/…/trace.zip`) and the popup's diagnostics.

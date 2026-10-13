@@ -8,8 +8,14 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender) => {
+  const tabId = sender.tab?.id;
+  if (!message || tabId === undefined) return;
   // "Never mind, close tab" on the pause screen, and "Done" on the reminder.
-  if (message && message.type === 'calm:close-tab' && sender.tab && sender.tab.id !== undefined) {
-    chrome.tabs.remove(sender.tab.id).catch(() => {});
+  if (message.type === 'calm:close-tab') chrome.tabs.remove(tabId).catch(() => {});
+  // A Reddit tab reports protections that may not work there, because Reddit changed the page (landmarks in page.js).
+  if (message.type === 'calm:health') {
+    const broken = Array.isArray(message.affected) && message.affected.length > 0;
+    if (broken) chrome.action.setBadgeBackgroundColor({ tabId, color: '#b4452f' }).catch(() => {});
+    chrome.action.setBadgeText({ tabId, text: broken ? '!' : '' }).catch(() => {});
   }
 });

@@ -29,6 +29,50 @@
   // Counters for the "Copy diagnostics" button in the popup.
   const stats = { heldObserver: 0, blockedLoadContent: 0, batchesRequested: 0 };
 
+  /* ================================================================ Reddit's names */
+
+  // Every name from Reddit's pages that page.js depends on. When Reddit renames something, change it here, and in
+  // calm.css, which hides some of the same elements. The landmarks (below) find a name that stopped matching.
+  const REDDIT = Object.freeze({
+    main: 'main, #main-content',
+    // The page's frame (app, header, sidebars): a search for a recommendation section stops there.
+    frame: 'shreddit-app, reddit-header-large, #right-sidebar-container, #right-sidebar-contents, #left-sidebar-container, #flex-left-nav-container, reddit-sidebar-nav',
+    feed: 'shreddit-feed',
+    post: 'shreddit-post',
+    adPost: 'shreddit-ad-post',
+    unit: 'article',                  // holds one post in a feed (an <hr> can follow it)
+    postIdPrefix: 't3_',              // a post's element id is t3_<post id>
+    // The loader: loads part of a page. With slot="load-after" it loads the next batch of a feed, from the address in
+    // its src, which has a paging cursor in it. Reddit calls its loadContent() method directly; "Next page" does too.
+    loader: 'faceplate-partial',
+    loaderSlot: 'load-after',
+    loaderSrc: 'src',
+    loaderMethod: 'loadContent',
+    cursors: ['after', 'cursor'],
+    comment: 'shreddit-comment',
+    commentTree: 'shreddit-comment-tree',
+    commentsStart: 'comment-body-header, shreddit-comment-tree, #comment-tree, comment-forest-empty-state',
+    number: 'faceplate-number',       // vote scores and comment counts
+    awards: 'award-button, shreddit-award-button, awards-bar, [data-post-click-location="award"], button[aria-label*="award" i]',
+    // Trending searches under the search field, and their heading.
+    trending: '#reddit-trending-searches-partial-container, [id*="trending-searches" i], div:has(+ #reddit-trending-searches-partial-container):not(:has(input, a, li, ul))',
+    videoPost: ':is([post-type="video"], [post-type="gif"], [domain*="youtube.com"], [domain="youtu.be"], [domain*="redgifs.com"], [domain*="streamable.com"], [domain*="twitch.tv"])',
+    // Why Reddit shows a post. Logged in, almost every Home post has a source; "subscribed…" is a community you joined.
+    recSource: 'recommendation-source',
+    recSourceJoined: /^subscribed/i,
+    recContext: 'recommendation-context',
+    joinButton: 'shreddit-join-button',
+    joined: 'subscribed',             // the join button's attribute: "true" for a community you joined
+    postLabel: '[id="-post-rtjson-content"]', // the line above a post, e.g. "Because you visited r/…"
+    // Reddit's wording (English only): labels of suggested posts, and headings of sections that exist to keep you clicking.
+    recLabel: /^(because you|similar to\b|popular on reddit|popular near you|popular in your (country|area|region)|suggested for you|recommended for you|you might like|based on your)/i,
+    recHeading: /^(recent posts|recently viewed( posts)?|popular communities|related communities|similar communities|communities (you may|you might) like|more posts you may like|more posts from\b|related posts|similar posts|you might also like|recommended( for you)?|suggested( for you| communities| posts)?|trending( today| now| on reddit)?|top communities|people also search(ed)? for|related answers|related searches|keep (browsing|exploring)|popular (posts|right now|today))\b/i,
+  });
+  const FEED_LOADER = `${REDDIT.loader}[slot="${REDDIT.loaderSlot}"]`;
+  const ANY_POST = `${REDDIT.post}, ${REDDIT.adPost}`;
+  const COMMENTS = `${REDDIT.commentTree}, ${REDDIT.comment}`;
+  const hasCursor = (src) => REDDIT.cursors.some((name) => new RegExp(`[?&]${name}=`).test(src || '')); // a loader address with a paging cursor
+
   /* ================================================================ settings */
 
   const tokens = (attr) => ` ${html.getAttribute(attr) || ''} `;
@@ -41,29 +85,29 @@
 
   /* ================================================================ state */
 
-  let pageKind = '';        // home | popular | all | explore | post | search | listing | other
+  let address = {};         // what the address means: { type, post, comment } from blocking.js (see readAddress)
+  let pageKind = '';        // address.type: home | popular | all | explore | post | subreddit | profile | …
   let lastLocation = '';
   let feedState = null;     // pagination state for the current main feed
   let cameBack = false;     // true after back/forward, so we restore your page number
   try { cameBack = performance.getEntriesByType('navigation')[0]?.type === 'back_forward'; } catch { /* ignore */ }
 
-  function pageType(path) {
-    if (/^\/(?:(?:best|hot|new|top|rising|controversial)\/?)?$/i.test(path) || /^\/home(?:\/|$)/i.test(path)) return 'home';
-    if (/^\/r\/popular(?:\/|$)/i.test(path)) return 'popular';
-    if (/^\/r\/all(?:\/|$)/i.test(path)) return 'all';
-    if (/^\/(?:explore|topics)(?:\/|$)/i.test(path)) return 'explore';
-    if (/\/comments\/[a-z0-9]+/i.test(path)) return 'post';
-    if (/^\/(?:r\/[^/]+\/)?search(?:\/|$)/i.test(path)) return 'search';
-    if (/^\/(?:r|u|user)\//i.test(path)) return 'listing';
-    return 'other';
+  // blocking.js runs in bridge.js's world. bridge.js writes what the address means on <html>, and also at once
+  // when page.js asks with this event (DOM events reach the listeners of both worlds before dispatchEvent returns).
+  function readAddress() {
+    document.dispatchEvent(new CustomEvent('calm:address'));
+    try { return JSON.parse(html.getAttribute('data-calm-address')) || {}; } catch { return {}; }
   }
 
   function checkLocation() {
     const key = location.pathname + location.search;
     if (key === lastLocation) return;
+    const next = readAddress();
+    if (!next.type) return; // bridge.js has not started yet: ask again on the next refresh
     const firstLoad = lastLocation === '';
     lastLocation = key;
-    pageKind = pageType(location.pathname);
+    address = next;
+    pageKind = next.type;
     html.setAttribute('data-calm-page', pageKind);
     html.removeAttribute('data-calm-comments-open');
     if (!firstLoad) resetFeed();
@@ -74,9 +118,8 @@
   // The loader Reddit puts at the bottom of a feed: inside <shreddit-feed>, or right next to it.
   // (Loaders inside comment threads and other lists are left alone.)
   const isLoadSentinel = (el) =>
-    !!el && el.nodeType === 1 && el.localName === 'faceplate-partial' &&
-    el.getAttribute('slot') === 'load-after' && !el.closest('shreddit-comment-tree, shreddit-comment') &&
-    (!!el.closest('shreddit-feed') || !!el.parentElement?.querySelector(':scope > shreddit-feed'));
+    !!el && el.nodeType === 1 && el.matches(FEED_LOADER) && !el.closest(COMMENTS) &&
+    (!!el.closest(REDDIT.feed) || !!el.parentElement?.querySelector(`:scope > ${REDDIT.feed}`));
 
   // Identify a batch by its endpoint + "after" cursor.
   function batchKey(url) {
@@ -84,7 +127,7 @@
     try {
       const u = new URL(url, location.href);
       if (u.origin !== location.origin) return '';
-      const cursor = u.searchParams.get('after') || u.searchParams.get('cursor') || '';
+      const cursor = REDDIT.cursors.map((name) => u.searchParams.get(name)).find(Boolean) || '';
       return `${u.pathname}|${cursor || u.search}`;
     } catch {
       return '';
@@ -123,7 +166,7 @@
         }
         super(function calmCallback(entries, observer) {
           const list = entries.map((e) => {
-            if (gating() && attempt(() => isLoadSentinel(e.target) || isLoadSentinel(e.target.closest?.('faceplate-partial')))) {
+            if (gating() && attempt(() => isLoadSentinel(e.target) || isLoadSentinel(e.target.closest?.(REDDIT.loader)))) {
               if (e.isIntersecting) stats.heldObserver++;
               return quiet(e);
             }
@@ -139,7 +182,7 @@
   // 1b. loadContent(): Reddit's code (prefetching, scroll handlers) can call it directly.
   function gateLoadContent(original) {
     const gated = function loadContent(...args) {
-      if (gating() && isLoadSentinel(this) && !permitted(batchKey(this.getAttribute('src')))) {
+      if (gating() && isLoadSentinel(this) && !permitted(batchKey(this.getAttribute(REDDIT.loaderSrc)))) {
         stats.blockedLoadContent++;
         return Promise.resolve();
       }
@@ -148,18 +191,17 @@
     gated.__calmGate = true;
     return gated;
   }
+  const LOAD = REDDIT.loaderMethod;
   function patchLoaderClass() {
-    const proto = customElements.get('faceplate-partial')?.prototype;
-    if (proto && typeof proto.loadContent === 'function' && !proto.loadContent.__calmGate) {
-      proto.loadContent = gateLoadContent(proto.loadContent);
+    const proto = customElements.get(REDDIT.loader)?.prototype;
+    if (proto && typeof proto[LOAD] === 'function' && !proto[LOAD].__calmGate) proto[LOAD] = gateLoadContent(proto[LOAD]);
+  }
+  function patchLoaderInstance(el) { // in case the method is an own property of the element
+    if (Object.prototype.hasOwnProperty.call(el, LOAD) && typeof el[LOAD] === 'function' && !el[LOAD].__calmGate) {
+      el[LOAD] = gateLoadContent(el[LOAD]);
     }
   }
-  function patchLoaderInstance(el) { // in case loadContent is an own property of the element
-    if (Object.prototype.hasOwnProperty.call(el, 'loadContent') && typeof el.loadContent === 'function' && !el.loadContent.__calmGate) {
-      el.loadContent = gateLoadContent(el.loadContent);
-    }
-  }
-  customElements.whenDefined('faceplate-partial').then(() => attempt(patchLoaderClass)).catch(() => {});
+  customElements.whenDefined(REDDIT.loader).then(() => attempt(patchLoaderClass)).catch(() => {});
 
   const sanitizePath = (path) => path.replace(/\/(r|u|user)\/[^/]+/gi, '/$1/…').slice(0, 120);
 
@@ -169,15 +211,8 @@
   // Chrome checks a compound selector left to right, so put the cheap sibling test before :not(:has(…)).
   const shadowSheet = new CSSStyleSheet();
   const SHADOW_RULES = {
-    counts: `
-      faceplate-number, award-button, shreddit-award-button, awards-bar,
-      [data-post-click-location="award"], button[aria-label*="award" i] { display: none !important; }
-    `,
-    recs: `
-      #reddit-trending-searches-partial-container,
-      [id*="trending-searches" i],
-      div:has(+ #reddit-trending-searches-partial-container):not(:has(input, a, li, ul)) { display: none !important; }
-    `,
+    counts: `${REDDIT.number}, ${REDDIT.awards} { display: none !important; }`,
+    recs: `${REDDIT.trending} { display: none !important; }`,
   };
   function updateShadowSheet() {
     let css = '';
@@ -248,14 +283,14 @@
   window.addEventListener('keydown', noteGesture, true);
 
   const userStarted = new WeakSet();
-  const PLAYER_BOUNDARY = /^(shreddit-post|article|shreddit-feed|main|body|html)$/;
+  const PLAYER_BOUNDARY = new Set([REDDIT.post, REDDIT.unit, REDDIT.feed, 'main', 'body', 'html']);
 
   function startedByUser(media) {
     if (userStarted.has(media)) return true;
     if (performance.now() - lastGesture.time > 5000) return false;
     let node = media;
     for (let i = 0; node && i < 40; i++) {
-      if (node.nodeType === 1 && PLAYER_BOUNDARY.test(node.localName)) return false;
+      if (node.nodeType === 1 && PLAYER_BOUNDARY.has(node.localName)) return false;
       if (lastGesture.path.includes(node)) {
         userStarted.add(media);
         return true;
@@ -284,41 +319,33 @@
 
   /* ================================================================ 4. recommended posts */
 
-  const REC_LABEL = /^(because you|similar to\b|popular on reddit|popular near you|popular in your (country|area|region)|suggested for you|recommended for you|you might like|based on your)/i;
-
   // Returns a reason string when a feed post is a recommendation rather than something you follow.
   function recommendationReason(post, unit, st) {
-    const label = unit.querySelector('[id="-post-rtjson-content"]');
-    if (label && REC_LABEL.test(label.textContent.trim())) return 'label';
-    // Logged in, Reddit gives almost every Home post a source. "subscribed_…" posts come from communities you joined.
-    const source = post.getAttribute('recommendation-source');
-    if (source ? !/^subscribed/i.test(source) : post.hasAttribute('recommendation-context')) return 'attr';
+    const label = unit.querySelector(REDDIT.postLabel);
+    if (label && REDDIT.recLabel.test(label.textContent.trim())) return 'label';
+    const source = post.getAttribute(REDDIT.recSource);
+    if (source ? !REDDIT.recSourceJoined.test(source) : post.hasAttribute(REDDIT.recContext)) return 'attr';
     if (st.joinFilter) {
       // On Home, a "Join" button means the post comes from a community you haven't joined.
-      const join = unit.querySelector('shreddit-join-button');
+      const join = unit.querySelector(REDDIT.joinButton);
       if (join) {
-        const subscribed = join.getAttribute('subscribed');
+        const subscribed = join.getAttribute(REDDIT.joined);
         if (subscribed === null || subscribed === 'false') return 'join';
       }
     }
     return '';
   }
 
-  // Video and GIF posts, including links to video sites (for the "hide video posts" extra).
-  const VIDEO_POST = ':is([post-type="video"], [post-type="gif"], [domain*="youtube.com"], [domain="youtu.be"], [domain*="redgifs.com"], [domain*="streamable.com"], [domain*="twitch.tv"])';
-
   /* ================================================================ 5. pagination */
 
   // Flags live in data attributes (Reddit rewrites class attributes on re-render).
   const setFlag = (el, name, on) => { if (el.hasAttribute(name) !== on) el.toggleAttribute(name, on); };
-  const unitOf = (post) => post.closest('article') || post;
-  const countPosts = (feed) => feed.querySelectorAll('shreddit-post').length;
+  const unitOf = (post) => post.closest(REDDIT.unit) || post;
+  const countPosts = (feed) => feed.querySelectorAll(REDDIT.post).length;
 
   function feedLoaders(feed) {
-    let all = [...feed.querySelectorAll('faceplate-partial[slot="load-after"]')];
-    if (!all.length && feed.parentElement) {
-      all = [...feed.parentElement.querySelectorAll(':scope > faceplate-partial[slot="load-after"]')];
-    }
+    let all = [...feed.querySelectorAll(FEED_LOADER)];
+    if (!all.length && feed.parentElement) all = [...feed.parentElement.querySelectorAll(`:scope > ${FEED_LOADER}`)];
     return all.filter(isLoadSentinel);
   }
   function lastSentinel(feed) {
@@ -328,8 +355,8 @@
 
   function mainFeed() {
     if (pageKind === 'post') return null;
-    const feeds = document.querySelectorAll('shreddit-feed');
-    for (const feed of feeds) if (feed.closest('main, #main-content')) return feed;
+    const feeds = document.querySelectorAll(REDDIT.feed);
+    for (const feed of feeds) if (feed.closest(REDDIT.main)) return feed;
     return feeds[0] || null;
   }
 
@@ -410,12 +437,12 @@
     let seen = 0;
     let hiddenByJoin = 0;
     let lastUnit = null;
-    for (const post of st.feed.querySelectorAll('shreddit-post, shreddit-ad-post')) {
+    for (const post of st.feed.querySelectorAll(ANY_POST)) {
       const unit = unitOf(post);
       let reason = '';
       let video = false;
       let duplicate = false;
-      if (post.localName === 'shreddit-post') {
+      if (post.localName === REDDIT.post) {
         if (post.id && ids.has(post.id)) {
           duplicate = true;
         } else {
@@ -423,7 +450,7 @@
           seen++;
           reason = recsOn ? recommendationReason(post, unit, st) : '';
           if (reason === 'join') hiddenByJoin++;
-          video = hideVideos && post.matches(VIDEO_POST);
+          video = hideVideos && post.matches(REDDIT.videoPost); // also links to video sites
           if (!reason && !video) index++;
         }
       }
@@ -453,8 +480,7 @@
     let after = false;
     for (const child of st.feed.children) {
       if (child === anchor) { after = true; continue; }
-      const trailing = paging && after && !child.matches('shreddit-post, shreddit-ad-post') &&
-        !child.querySelector('shreddit-post, shreddit-ad-post');
+      const trailing = paging && after && !child.matches(ANY_POST) && !child.querySelector(ANY_POST);
       setFlag(child, 'data-calm-trailing', trailing);
     }
   }
@@ -552,16 +578,16 @@
   async function requestBatch(st) {
     const sentinel = lastSentinel(st.feed);
     if (!sentinel) return false;
-    grant(batchKey(sentinel.getAttribute('src')));
+    grant(batchKey(sentinel.getAttribute(REDDIT.loaderSrc)));
     stats.batchesRequested++;
-    if (typeof sentinel.loadContent !== 'function') {
+    if (typeof sentinel[LOAD] !== 'function') {
       await upgraded(sentinel);
       attempt(patchLoaderClass);
       attempt(patchLoaderInstance, sentinel);
     }
     if (!sentinel.isConnected) return true; // already replaced by the new posts
-    if (typeof sentinel.loadContent !== 'function') return false;
-    try { sentinel.loadContent(); } catch (err) { log('loadContent failed', err); }
+    if (typeof sentinel[LOAD] !== 'function') return false;
+    try { sentinel[LOAD](); } catch (err) { log('loading a batch failed', err); }
     return true;
   }
 
@@ -608,9 +634,8 @@
   /* ================================================================ 6. post pages */
 
   function mainPostOnPostPage() {
-    const id = (location.pathname.match(/\/comments\/([a-z0-9]+)/i) || [])[1];
-    return (id && document.getElementById(`t3_${id}`)) ||
-      document.querySelector('main shreddit-post, #main-content shreddit-post');
+    return (address.post && document.getElementById(REDDIT.postIdPrefix + address.post)) ||
+      document.querySelector(`:is(${REDDIT.main}) ${REDDIT.post}`);
   }
 
   // Any feed on a post page ("More posts you may like" etc.) is a recommendation.
@@ -618,16 +643,9 @@
     if (pageKind !== 'post') return;
     const mainPost = mainPostOnPostPage();
     if (!mainPost) return;
-    for (const feed of document.querySelectorAll('shreddit-feed')) {
+    for (const feed of document.querySelectorAll(REDDIT.feed)) {
       setFlag(feed, 'data-calm-rec', !feed.contains(mainPost));
     }
-  }
-
-  function isCommentPermalink() {
-    const p = location.pathname;
-    return /\/comments\/[a-z0-9]+\/[^/]+\/[a-z0-9]+\/?$/i.test(p) ||
-      /\/comments\/[a-z0-9]+\/comment\/[a-z0-9]+/i.test(p) ||
-      /[?&](comment|context)=/i.test(location.search);
   }
 
   function openComments() {
@@ -663,11 +681,11 @@
       gate?.remove();
       return;
     }
-    if (isCommentPermalink()) { // you followed a link to a specific comment: show it
+    if (address.comment) { // you followed a link to one comment: show it
       openComments();
       return;
     }
-    const anchor = document.querySelector('comment-body-header, shreddit-comment-tree, #comment-tree, comment-forest-empty-state');
+    const anchor = document.querySelector(REDDIT.commentsStart);
     const post = mainPostOnPostPage();
     if (!anchor && !post) return;
     if (!gate) gate = buildGate();
@@ -681,12 +699,11 @@
 
   /* ================================================================ 7. recommendation sections */
 
-  // Headings of sidebar/below-post modules that exist to keep you clicking.
-  const REC_HEADING = /^(recent posts|recently viewed( posts)?|popular communities|related communities|similar communities|communities (you may|you might) like|more posts you may like|more posts from\b|related posts|similar posts|you might also like|recommended( for you)?|suggested( for you| communities| posts)?|trending( today| now| on reddit)?|top communities|people also search(ed)? for|related answers|related searches|keep (browsing|exploring)|popular (posts|right now|today))\b/i;
-  const SKIP_TAGS = new Set(['shreddit-post', 'shreddit-comment', 'shreddit-ad-post', 'shreddit-feed', 'shreddit-comment-tree', 'article', 'textarea', 'input', 'script', 'style', 'noscript', 'template', 'svg']);
-  const STOP = 'main, #main-content, shreddit-app, body, html, header, reddit-header-large, #right-sidebar-container, #right-sidebar-contents, #left-sidebar-container, #flex-left-nav-container, reddit-sidebar-nav';
+  // Sections are found by their heading (REDDIT.recHeading). The search skips posts and comments, and stops at the page's frame.
+  const SKIP_TAGS = new Set([REDDIT.post, REDDIT.comment, REDDIT.adPost, REDDIT.feed, REDDIT.commentTree, REDDIT.unit, 'textarea', 'input', 'script', 'style', 'noscript', 'template', 'svg']);
+  const STOP = `${REDDIT.main}, ${REDDIT.frame}, body, html, header`;
   // Real content a section must never contain (feeds already marked as recommendations don't count).
-  const CONTENT = 'shreddit-feed:not([data-calm-rec]), shreddit-post:not([data-calm-rec] *), shreddit-comment-tree, main, #main-content, form, input, textarea';
+  const CONTENT = `${REDDIT.feed}:not([data-calm-rec]), ${REDDIT.post}:not([data-calm-rec] *), ${REDDIT.commentTree}, ${REDDIT.main}, form, input, textarea`;
 
   // True when `el` holds more than a heading row: the heading branch plus a list of items or real text.
   function looksLikeSection(el, headingBranch) {
@@ -735,7 +752,7 @@
             : NodeFilter.FILTER_SKIP;
         }
         const value = node.nodeValue;
-        return value.length < 80 && REC_HEADING.test(value.trim()) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+        return value.length < 80 && REDDIT.recHeading.test(value.trim()) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
       },
     });
     const hits = [];
@@ -746,31 +763,102 @@
     }
   }
 
+  /* ================================================================ landmarks */
+
+  // What the protections need to find on Reddit's pages, and the protections (data-calm-off tokens) that need it.
+  // checkLandmarks() gives true for a landmark it finds, and false when Reddit changed it: a general signal shows that
+  // the page has the thing (for example links to posts), but the names in REDDIT no longer find it. A landmark that
+  // does not apply to the page is left out, so "missing" is never a guess.
+  const LANDMARKS = {
+    posts: ['paginate', 'recs'],
+    feed: ['paginate'],
+    loader: ['paginate'],
+    counts: ['counts'],
+    post: ['comments'],
+    comments: ['comments'],
+  };
+  const FEED_PAGES = new Set(['home', 'popular', 'all', 'subreddit']);
+  const POST_LINK = 'a[href*="/comments/"]'; // a link to a post (see calmPostId in blocking.js)
+
+  // True when `root`, or a shadow root inside it, has an element that matches `selector`.
+  function deepHas(root, selector) {
+    if (root.querySelector(selector) || (root.shadowRoot && deepHas(root.shadowRoot, selector))) return true;
+    for (const el of root.querySelectorAll('*')) if (el.shadowRoot && deepHas(el.shadowRoot, selector)) return true;
+    return false;
+  }
+
+  function checkLandmarks() {
+    const found = {};
+    const main = document.querySelector(REDDIT.main);
+    if (FEED_PAGES.has(pageKind) && main && main.querySelectorAll(POST_LINK).length >= 3) {
+      const posts = [...main.querySelectorAll(REDDIT.post)];
+      const feed = posts[0]?.closest(REDDIT.feed);
+      found.posts = posts.length > 0;
+      if (posts.length) {
+        found.feed = !!feed;
+        found.counts = posts.some((post) => deepHas(post, REDDIT.number));
+      }
+      // The general signal for the loader: an element in or next to the feed loads from an address with a paging cursor.
+      const next = feed ? [...feed.querySelectorAll(`[${REDDIT.loaderSrc}]`), ...(feed.parentElement?.children || [])]
+        .filter((el) => hasCursor(el.getAttribute(REDDIT.loaderSrc))) : [];
+      if (next.length) {
+        const Loader = customElements.get(REDDIT.loader);
+        found.loader = next.some(isLoadSentinel) && (!Loader || typeof Loader.prototype[LOAD] === 'function');
+      }
+    }
+    if (pageKind === 'post' && document.readyState === 'complete') {
+      found.post = !!mainPostOnPostPage();
+      if (found.post) found.comments = !!document.querySelector(REDDIT.commentsStart);
+    }
+    return found;
+  }
+
+  // The protections that are on, but need a landmark that Reddit changed.
+  const affectedFeatures = (found) =>
+    [...new Set(Object.keys(found).filter((name) => !found[name]).flatMap((name) => LANDMARKS[name]))].filter(isOn);
+
+  // The toolbar icon shows "!" while a protection may not work on this page (bridge.js passes the list on). The check
+  // runs when the page has been quiet for 2 s, so a page that is still loading does not count.
+  let healthTimer = 0;
+  let healthSent = '';
+  function scheduleHealthCheck() {
+    clearTimeout(healthTimer);
+    healthTimer = setTimeout(() => {
+      const affected = JSON.stringify(attempt(() => affectedFeatures(checkLandmarks())) || []);
+      if (affected === healthSent) return;
+      healthSent = affected;
+      document.dispatchEvent(new CustomEvent('calm:health', { detail: affected }));
+    }, 2000);
+  }
+
   /* ================================================================ diagnostics */
 
   function buildReport() {
     const feed = feedState?.feed || mainFeed();
-    const posts = feed ? [...feed.querySelectorAll('shreddit-post')] : [];
+    const posts = feed ? [...feed.querySelectorAll(REDDIT.post)] : [];
     const visible = (el) => (el.checkVisibility ? el.checkVisibility() : getComputedStyle(el).display !== 'none');
     const chain = [];
     for (let n = posts[0]; n && chain.length < 8; n = n.parentElement) chain.push(n.localName);
     const children = feed ? [...feed.children].map((c) => c.localName) : [];
-    const loaders = [...document.querySelectorAll('faceplate-partial')].slice(0, 12).map((s) => ({
+    const loaders = [...document.querySelectorAll(REDDIT.loader)].slice(0, 12).map((s) => ({
       slot: s.getAttribute('slot'),
       loading: s.getAttribute('loading'),
-      path: sanitizePath((s.getAttribute('src') || '').split('?')[0]),
-      cursor: /[?&](after|cursor)=/.test(s.getAttribute('src') || ''),
-      upgraded: typeof s.loadContent === 'function',
-      inFeed: !!s.closest('shreddit-feed'),
+      path: sanitizePath((s.getAttribute(REDDIT.loaderSrc) || '').split('?')[0]),
+      cursor: hasCursor(s.getAttribute(REDDIT.loaderSrc)),
+      upgraded: typeof s[LOAD] === 'function',
+      inFeed: !!s.closest(REDDIT.feed),
       hidden: !visible(s),
     }));
+    const landmarks = checkLandmarks();
     return {
       page: pageKind,
+      landmarks,
+      affected: affectedFeatures(landmarks),
       off: html.getAttribute('data-calm-off'),
       on: html.getAttribute('data-calm-on'),
       pageSize: pageSize(),
-      feeds: document.querySelectorAll('shreddit-feed').length,
-      feedInMain: !!feed?.closest('main, #main-content'),
+      feeds: document.querySelectorAll(REDDIT.feed).length,
+      feedInMain: !!feed?.closest(REDDIT.main),
       posts: posts.length,
       visiblePosts: posts.filter((p) => visible(unitOf(p))).length,
       state: feedState && {
@@ -780,19 +868,19 @@
       },
       // Why posts count as suggestions, e.g. { global_popular_hot_sort: 21, none: 4 }.
       recommendationSources: posts.reduce((counts, p) => {
-        const source = p.getAttribute('recommendation-source') || 'none';
+        const source = p.getAttribute(REDDIT.recSource) || 'none';
         counts[source] = (counts[source] || 0) + 1;
         return counts;
       }, {}),
       postParents: chain,
-      inArticle: !!posts[0]?.closest('article'),
+      inArticle: !!posts[0]?.closest(REDDIT.unit),
       feedChildren: { count: children.length, first: children.slice(0, 6), last: children.slice(-6) },
       loaders,
       defined: {
-        feed: !!customElements.get('shreddit-feed'),
-        post: !!customElements.get('shreddit-post'),
-        partial: !!customElements.get('faceplate-partial'),
-        gated: !!customElements.get('faceplate-partial')?.prototype?.loadContent?.__calmGate,
+        feed: !!customElements.get(REDDIT.feed),
+        post: !!customElements.get(REDDIT.post),
+        partial: !!customElements.get(REDDIT.loader),
+        gated: !!customElements.get(REDDIT.loader)?.prototype?.[LOAD]?.__calmGate,
       },
       stats,
       scroll: { y: Math.round(window.scrollY), height: html.scrollHeight, viewport: window.innerHeight },
@@ -840,9 +928,10 @@
     attempt(refreshPostPage);
     attempt(refreshComments);
     attempt(refreshRecSections);
+    scheduleHealthCheck();
   }
 
-  const FEEDISH = 'shreddit-post, shreddit-ad-post, article, shreddit-feed';
+  const FEEDISH = `${ANY_POST}, ${REDDIT.unit}, ${REDDIT.feed}`;
   const touchesFeed = (node) => node.matches(FEEDISH) || (node.firstElementChild !== null && node.querySelector(FEEDISH) !== null);
 
   new MutationObserver((records) => {

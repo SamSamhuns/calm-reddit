@@ -4,6 +4,8 @@
  * so nothing addictive flashes on screen while settings load.
  * Opt-in extras apply while their token appears in <html data-calm-on="...">.
  * Rules for things inside Reddit's shadow roots live in page.js.
+ * This file holds the Reddit names that only CSS uses. Names that page.js also uses are in its REDDIT block:
+ * when Reddit renames one of those, change it in both files.
  */
 
 /* ---------- Pause screen and blocked pages: keep the page hidden behind the screen ---------- */

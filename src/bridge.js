@@ -5,6 +5,8 @@
  *  - Keeps a small "You came here for…" reminder in the corner.
  *  - Adds each reason to a history on this device, which the popup shows.
  *  - Covers pages you've blocked (rules in blocking.js) with a short note.
+ *  - Writes what the address means (rules in blocking.js) on <html data-calm-address> for page.js.
+ *  - Passes on page.js's list of protections that may not work here, for the "!" on the toolbar icon.
  */
 (() => {
   'use strict';
@@ -24,6 +26,7 @@
 
   // Keep the page hidden for the few milliseconds it takes to decide whether to pause.
   html.setAttribute('data-calm-pausing', '');
+  publishAddress();
 
   const alive = () => { try { return Boolean(chrome.runtime && chrome.runtime.id); } catch { return false; } };
   const visible = () => document.visibilityState === 'visible';
@@ -379,7 +382,17 @@
     }
   }
 
+  // What the address means, for page.js. Chrome loads a file into one world only, so blocking.js is not in page.js's
+  // world. page.js asks with a "calm:address" event when it sees the address change, and the answer is on <html> at once.
+  function publishAddress() {
+    const path = location.pathname;
+    html.setAttribute('data-calm-address', JSON.stringify({
+      type: calmPageType(path), post: calmPostId(path), comment: calmIsCommentLink(path, location.search),
+    }));
+  }
+
   function onUrlChange() {
+    publishAddress();
     blockRecheck = { timer: blockRecheck.timer, tries: 0 };
     refreshBlock();
   }
@@ -483,6 +496,14 @@
 
   async function init() {
     if (alive()) listenForDiagnostics();
+    // page.js sees every address change, also in browsers without the Navigation API (below), such as older Safari.
+    document.addEventListener('calm:address', onUrlChange);
+    // Protections that may not work here, because Reddit changed the page (landmarks in page.js).
+    document.addEventListener('calm:health', (e) => {
+      let affected = [];
+      try { affected = JSON.parse(e.detail); } catch { /* ignore */ }
+      if (alive()) chrome.runtime.sendMessage({ type: 'calm:health', affected }).catch(() => {});
+    });
     // Read alongside the settings: the page stays hidden until both are back.
     const lastActive = Promise.resolve().then(() => chrome.storage.local.get(LAST_ACTIVE));
     lastActive.catch(() => {}); // only awaited when the pause is wanted

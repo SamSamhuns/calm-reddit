@@ -123,13 +123,28 @@
     chrome.tabs.create({ url: `chrome://extensions/?id=${chrome.runtime.id}` });
   });
 
+  // The report of the Calm Reddit scripts in the active tab. Rejects when it is not a Reddit tab.
+  async function tabReport() {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    return chrome.tabs.sendMessage(tab.id, { type: 'calm:diagnose' });
+  }
+
+  // Protections that may not work on this tab, because Reddit changed the page (landmarks in page.js), by their row names.
+  tabReport().then((report) => {
+    const names = (report?.page?.affected || []).map((token) => {
+      const key = CALM_FEATURES.find(([, t]) => t === token)?.[0];
+      return document.querySelector(`[data-key="${key}"]`)?.closest('.row')?.querySelector('.name')?.textContent;
+    }).filter(Boolean);
+    $('#health-list').replaceChildren(...names.map((name) => Object.assign(document.createElement('li'), { textContent: name })));
+    $('#health').hidden = !names.length;
+  }).catch(() => {});
+
   // Page-structure report for troubleshooting (no post content); copied to the clipboard.
   $('#diag').addEventListener('click', async () => {
     const btn = $('#diag');
     let text = '';
     try {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      const report = await chrome.tabs.sendMessage(tab.id, { type: 'calm:diagnose' });
+      const report = await tabReport();
       text = `Calm Reddit ${chrome.runtime.getManifest().version} diagnostics\n${JSON.stringify(report, null, 1)}`;
     } catch {
       btn.textContent = 'Open a Reddit tab first';

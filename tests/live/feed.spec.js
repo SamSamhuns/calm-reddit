@@ -1,11 +1,20 @@
 // Feed and post-page features on live reddit.com. `npm test` leaves them out: run them with `npm run test:live`.
-const { test, expect, openReddit, blockedReason } = require('../fixtures');
+const { test, expect, openReddit, blockedReason, pageReport } = require('../fixtures');
 
 // A Chromium window, because Reddit answers headless browsers with a "Prove your humanity" page.
 test.use({ live: true, headless: false });
 
 const SUB = '/r/aww/'; // busy, mixed images and video, serves ads
 const feedPosts = (page) => page.locator('main shreddit-feed shreddit-post');
+
+// When this fails, the landmark that is false or left out is the Reddit name to update (see "Keeping up with Reddit").
+test('Reddit still has the landmarks the protections need', async ({ page }) => {
+  await openReddit(page, SUB);
+  await expect.poll(async () => (await pageReport(page)).landmarks, { timeout: 20_000 })
+    .toEqual({ posts: true, feed: true, counts: true, loader: true });
+  await openReddit(page, await feedPosts(page).first().getAttribute('permalink'));
+  await expect.poll(async () => (await pageReport(page)).landmarks, { timeout: 20_000 }).toEqual({ post: true, comments: true });
+});
 
 test('shows one page of posts with a pager instead of infinite scroll', async ({ page }) => {
   await openReddit(page, SUB);

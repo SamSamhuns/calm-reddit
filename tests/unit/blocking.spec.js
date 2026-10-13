@@ -10,7 +10,7 @@ vm.createContext(sandbox);
 for (const file of ['src/settings.js', 'src/blocking.js']) {
   vm.runInContext(fs.readFileSync(path.join(__dirname, '../..', file), 'utf8'), sandbox, { filename: file });
 }
-const { calmBlockReason, calmParseSubreddits } = sandbox;
+const { calmBlockReason, calmParseSubreddits, calmPageType, calmPostId, calmIsCommentLink } = sandbox;
 const DEFAULTS = vm.runInContext('CALM_DEFAULTS', sandbox);
 
 const R = 'https://www.reddit.com';
@@ -78,6 +78,35 @@ test.describe('calmBlockReason', () => {
 
   test('a list that is not in use does nothing', () => {
     expect(reason(`${R}/r/aww/`, { subredditMode: 'off', subreddits: ['aww'] })).toBe('');
+  });
+});
+
+test.describe('calmPageType', () => {
+  test('tells the kind of page from its address', () => {
+    for (const [path, type] of [
+      ['/', 'home'], ['/best/', 'home'], ['/home', 'home'],
+      ['/r/popular/', 'popular'], ['/r/all/top/', 'all'], ['/explore/', 'explore'], ['/notifications', 'notifications'],
+      ['/r/aww/comments/abc123/cute_dog/', 'post'], ['/user/spez/comments/abc123/x/', 'post'],
+      ['/search/', 'search'], ['/r/aww/search/', 'search'],
+      ['/r/aww/', 'subreddit'], ['/r/aww/wiki/', 'subreddit'], ['/user/spez/', 'profile'], ['/u/spez', 'profile'],
+      ['/settings/', 'other'],
+    ]) {
+      expect(calmPageType(path), path).toBe(type);
+    }
+  });
+});
+
+test.describe('posts and comments', () => {
+  test('calmPostId finds the post in an address', () => {
+    expect(calmPostId('/r/aww/comments/abc123/cute_dog/')).toBe('abc123');
+    expect(calmPostId('/r/aww/')).toBe('');
+  });
+
+  test('calmIsCommentLink tells a link to one comment from a link to the post', () => {
+    expect(calmIsCommentLink('/r/aww/comments/abc123/cute_dog/')).toBe(false);
+    expect(calmIsCommentLink('/r/aww/comments/abc123/cute_dog/def456/')).toBe(true);
+    expect(calmIsCommentLink('/r/aww/comments/abc123/comment/def456/')).toBe(true);
+    expect(calmIsCommentLink('/r/aww/comments/abc123/cute_dog/', '?context=3')).toBe(true);
   });
 });
 

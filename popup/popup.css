@@ -56,6 +56,7 @@ h1 { margin: 0; font-size: 15px; font-weight: 700; }
   border: 1px solid var(--warn-line);
 }
 .notice p { margin: 0 0 6px; }
+.notice ul { margin: 0; padding-left: 18px; }
 .link-btn {
   appearance: none;
   border: 0;
