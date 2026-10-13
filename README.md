@@ -1,5 +1,7 @@
 # Calm Reddit
 
+![Reddit home page with extension](static/images/home_page.jpg)
+
 Makes Reddit less addictive without blocking it, unless you ask it to.
 
 ## What it does
