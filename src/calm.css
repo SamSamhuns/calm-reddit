@@ -1,16 +1,29 @@
 /*
  * Calm Reddit: page styles (injected before Reddit renders).
- * Each feature is ON unless its token appears in <html data-calm-off="...">,
+ * Each protection is ON unless its token appears in <html data-calm-off="...">,
  * so nothing addictive flashes on screen while settings load.
+ * Opt-in extras apply while their token appears in <html data-calm-on="...">.
  * Rules for things inside Reddit's shadow roots live in page.js.
  */
 
-/* ---------- Pause screen: keep the page hidden behind the breather ---------- */
-html[data-calm-pausing] body { visibility: hidden !important; }
-html[data-calm-pausing] { overflow: hidden !important; }
+/* ---------- Pause screen and blocked pages: keep the page hidden behind the screen ---------- */
+html:is([data-calm-pausing], [data-calm-blocked]) body { visibility: hidden !important; }
+html:is([data-calm-pausing], [data-calm-blocked]) { overflow: hidden !important; }
 
-/* ---------- Grayscale (opt-in) ---------- */
+/* ---------- Opt-in extras ---------- */
 html[data-calm-on~="grayscale"] { filter: grayscale(1) !important; }
+
+html[data-calm-on~="sidebars"] :is(
+  #left-sidebar-container,
+  #right-sidebar-container,
+  #hamburger-button-tooltip,
+  .side /* old Reddit */
+) { display: none !important; }
+
+html[data-calm-on~="logo"] :is(#reddit-logo, #header-img, #header-img-a) { display: none !important; }
+
+/* Video and GIF posts in feeds (flagged by page.js, so pages still hold a full set of posts). */
+html[data-calm-on~="videos"] [data-calm-video] { display: none !important; }
 
 /* ---------- Pagination ---------- */
 /* Reddit's "load more at the bottom" loader. page.js loads batches only when you click Next page. */
@@ -112,6 +125,16 @@ html:not([data-calm-off~="counts"]) :is(
 html:not([data-calm-off~="counts"]) :is(.midcol .score, .tagline .score, .linkinfo .score, .linkinfo .upvoted) {
   display: none !important;
 }
+
+/* ---------- Ads ---------- */
+html:not([data-calm-off~="ads"]) :is(
+  shreddit-ad-post,
+  shreddit-ad-post + hr,
+  shreddit-sidebar-ad,
+  shreddit-comments-page-ad,
+  [data-testid="ad-slot"],
+  .promotedlink /* old Reddit */
+) { display: none !important; }
 
 /* ---------- Media in feeds: blurred until you hover ---------- */
 html:not([data-calm-off~="blur"]) shreddit-feed shreddit-post :is([slot="post-media-container"], [slot="thumbnail"]),

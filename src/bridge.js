@@ -3,6 +3,7 @@
  *  - Mirrors your settings onto <html data-calm-*> so calm.css and page.js react instantly.
  *  - Shows the pause screen when you arrive on Reddit after being away.
  *  - Keeps a small "You came here for…" reminder in the corner.
+ *  - Covers pages you've blocked (rules in blocking.js) with a short note.
  */
 (() => {
   'use strict';
@@ -16,6 +17,7 @@
   let settings = { ...CALM_DEFAULTS };
   let pause = null;   // { host, timer } while the pause screen is up
   let chip = null;    // { host, text } while the reminder is shown
+  let block = null;   // { host, title } while the page is blocked
 
   // Keep the page hidden for the few milliseconds it takes to decide whether to pause.
   html.setAttribute('data-calm-pausing', '');
@@ -27,10 +29,13 @@
   const reveal = () => { if (!pause) html.removeAttribute('data-calm-pausing'); };
 
   function applySettings() {
-    const off = CALM_FEATURES.filter(([key]) => !settings.enabled || !settings[key]).map(([, token]) => token);
+    const on = (key) => settings.enabled && Boolean(settings[key]);
+    const off = CALM_FEATURES.filter(([key]) => CALM_DEFAULTS[key] && !on(key)).map(([, token]) => token);
+    const extras = CALM_FEATURES.filter(([key]) => !CALM_DEFAULTS[key] && on(key)).map(([, token]) => token);
     html.setAttribute('data-calm-off', off.length ? off.join(' ') : 'none');
-    html.setAttribute('data-calm-on', settings.enabled && settings.grayscale ? 'grayscale' : '');
+    html.setAttribute('data-calm-on', extras.join(' '));
     html.setAttribute('data-calm-pagesize', String(settings.pageSize));
+    refreshBlock();
   }
 
   async function awayTooLong() {
@@ -84,7 +89,8 @@
 
   /* ------------------------------------------------------------------ pause screen */
 
-  const PAUSE_CSS = `
+  // Shared by the pause screen and the blocked-page screen.
+  const SCREEN_CSS = `
     :host { all: initial; }
     .backdrop {
       position: fixed; inset: 0; display: grid; place-items: center; padding: 24px; box-sizing: border-box;
@@ -108,6 +114,7 @@
     .cue { font-size: 12px; opacity: .55; margin-top: -10px; margin-bottom: 18px; min-height: 1em; }
     @keyframes breathe { 0%, 100% { transform: scale(.7); } 50% { transform: scale(1); } }
     h1 { font-size: 28px; line-height: 1.2; font-weight: 650; margin: 0 0 8px; letter-spacing: -.01em; }
+    .brand + h1 { margin-top: 20px; }
     .lede { margin: 0 0 18px; opacity: .8; font-size: 16px; line-height: 1.4; }
     input {
       width: 100%; box-sizing: border-box; font: inherit; font-size: 15px; padding: 12px 14px;
@@ -146,7 +153,7 @@
   function buildPause() {
     if (!pause || pause.host) return;
     const { host, root } = makeHost('calm-reddit-pause', { inset: '0' });
-    root.adoptedStyleSheets = [sheet(PAUSE_CSS)];
+    root.adoptedStyleSheets = [sheet(SCREEN_CSS)];
 
     const seconds = Math.max(3, Number(settings.pauseSeconds) || 10);
     const count = h('div', { class: 'count' }, String(seconds));
@@ -285,6 +292,72 @@
     else removeChip();
   }
 
+  /* ------------------------------------------------------------------ blocked pages */
+
+  let blockRecheck = { timer: 0, tries: 0 };
+
+  // Reddit says whose profile this is in <shreddit-screenview-data data='{"profile":{"name":…,"context":"owner"}}'>.
+  function isOwnProfile() {
+    try {
+      const { profile } = JSON.parse(document.querySelector('shreddit-screenview-data')?.getAttribute('data') || '{}');
+      const name = location.pathname.split('/')[2] || '';
+      return profile?.context === 'owner' && String(profile.name).toLowerCase() === name.toLowerCase();
+    } catch {
+      return false;
+    }
+  }
+
+  function refreshBlock() {
+    const reason = calmBlockReason(location.href, settings, { ownProfile: isOwnProfile() });
+    if (reason) showBlock(reason);
+    else hideBlock();
+    // On a profile the answer can change once the page says it's yours, so look again for a few seconds.
+    clearTimeout(blockRecheck.timer);
+    if (reason && !calmBlockReason(location.href, settings, { ownProfile: true }) && blockRecheck.tries++ < 20) {
+      blockRecheck.timer = setTimeout(refreshBlock, 250);
+    }
+  }
+
+  function onUrlChange() {
+    blockRecheck = { timer: blockRecheck.timer, tries: 0 };
+    refreshBlock();
+  }
+
+  function showBlock(reason) {
+    html.setAttribute('data-calm-blocked', reason);
+    if (block) {
+      block.title.textContent = reason;
+      return;
+    }
+    block = { host: null, title: h('h1', { id: 'calm-title' }, reason) };
+    whenBody(() => {
+      if (!block || block.host) return;
+      const { host, root } = makeHost('calm-reddit-block', { inset: '0' });
+      root.adoptedStyleSheets = [sheet(SCREEN_CSS)];
+      const back = h('button', { class: 'primary', type: 'button' }, 'Go back');
+      const leave = h('button', { class: 'ghost', type: 'button' }, 'Close tab');
+      back.addEventListener('click', () => { if (history.length > 1) history.back(); else closeTab(); });
+      leave.addEventListener('click', closeTab);
+      root.append(h('div', { class: 'backdrop' },
+        h('div', { class: 'card', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'calm-title' },
+          h('div', { class: 'brand' }, 'Calm Reddit'),
+          block.title,
+          h('p', { class: 'lede' }, 'You chose to keep this part of Reddit out of reach.'),
+          h('div', { class: 'actions' }, leave, back),
+          h('p', { class: 'hint' }, 'You can change this in the Calm Reddit popup.'),
+        ),
+      ));
+      html.appendChild(host);
+      block.host = host;
+    });
+  }
+
+  function hideBlock() {
+    html.removeAttribute('data-calm-blocked');
+    block?.host?.remove();
+    block = null;
+  }
+
   /* ------------------------------------------------------------------ wiring */
 
   function onStorageChanged(changes, area) {
@@ -331,6 +404,7 @@
           settings,
           pausing: html.hasAttribute('data-calm-pausing'),
           pauseOpen: Boolean(pause),
+          blocked: html.getAttribute('data-calm-blocked') || '',
           page: pageReport,
         });
       };
@@ -372,6 +446,9 @@
     setInterval(() => { if (visible()) markActive(); }, TICK_MS);
     document.addEventListener('visibilitychange', onVisibilityChange);
     window.addEventListener('pagehide', markActive);
+    // Reddit changes pages without reloading; the Navigation API reports those too.
+    window.navigation?.addEventListener('currententrychange', onUrlChange);
+    document.addEventListener('DOMContentLoaded', refreshBlock);
   }
 
   init();

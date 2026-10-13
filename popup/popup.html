@@ -68,6 +68,14 @@
 
     <div class="row">
       <div class="text">
+        <div class="name">Hide ads</div>
+        <div class="desc">Promoted posts and ad slots.</div>
+      </div>
+      <label class="switch"><input type="checkbox" data-key="hideAds" aria-label="Hide ads"><span class="track"><span class="thumb"></span></span></label>
+    </div>
+
+    <div class="row">
+      <div class="text">
         <div class="name">Blur images &amp; video in feeds</div>
         <div class="desc">Hover over one to see it.</div>
       </div>
@@ -119,8 +127,41 @@
         <div class="name">Grayscale</div>
         <div class="desc">Drain the colour out of Reddit.</div>
       </div>
-      <label class="switch"><input type="checkbox" data-key="grayscale" aria-label="Grayscale"><span class="track"><span class="thumb"></span></span></label>
+      <label class="switch"><input type="checkbox" data-key="grayscale" aria-label="Grayscale" data-instant><span class="track"><span class="thumb"></span></span></label>
     </div>
+
+    <section class="group" data-undo="Stop hiding" aria-labelledby="hide-title">
+      <h2 id="hide-title">Also hide</h2>
+      <div class="checks">
+        <label><input type="checkbox" data-key="hideSidebars"> Sidebars</label>
+        <label><input type="checkbox" data-key="hideLogo"> Reddit logo</label>
+        <label><input type="checkbox" data-key="hideVideos"> Video &amp; GIF posts</label>
+      </div>
+    </section>
+
+    <section class="group" data-undo="Unblock" aria-labelledby="block-title">
+      <h2 id="block-title">Block pages</h2>
+      <p class="desc">They show a short note instead. Posts you open from a link still work.</p>
+      <div class="checks">
+        <label><input type="checkbox" data-key="blockHome"> Home feed</label>
+        <label><input type="checkbox" data-key="blockPopular"> Popular &amp; All</label>
+        <label><input type="checkbox" data-key="blockExplore"> Explore</label>
+        <label><input type="checkbox" data-key="blockSearch"> Search results</label>
+        <label><input type="checkbox" data-key="blockSubreddits"> Subreddit feeds</label>
+        <label><input type="checkbox" data-key="blockProfiles"> Other profiles</label>
+        <label><input type="checkbox" data-key="blockNotifications"> Notifications</label>
+      </div>
+    </section>
+
+    <section class="group" aria-labelledby="subs-title">
+      <h2 id="subs-title">Subreddit list</h2>
+      <select data-key="subredditMode" aria-label="How to use the subreddit list">
+        <option value="off">Not used</option>
+        <option value="allow">Only allow these subreddits</option>
+        <option value="block">Block these subreddits</option>
+      </select>
+      <textarea id="subreddits" rows="2" spellcheck="false" placeholder="e.g. homelab, AskHistorians" aria-label="Subreddits, separated by commas"></textarea>
+    </section>
   </main>
 
   <footer>
@@ -130,6 +171,7 @@
   </footer>
 
   <script src="../src/settings.js"></script>
+  <script src="../src/blocking.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

@@ -117,8 +117,34 @@ select {
 .switch input:checked + .track .thumb { transform: translateX(16px); }
 .switch input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* Cool-down confirm */
+/* Groups of checkboxes and the subreddit list */
+.group { padding: 10px 16px 12px; border-top: 1px solid var(--line); }
+.group h2 { margin: 0 0 6px; font-size: 13px; font-weight: 600; }
+.group .desc { margin: -4px 0 6px; }
+.checks { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
+.checks label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.checks input { margin: 0; accent-color: var(--accent); }
+.group select { width: 100%; padding: 3px 4px; }
+.group textarea {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 5px 7px;
+  resize: vertical;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+/* Cool-down confirm (sticky, so it's visible from anywhere in the list) */
 .confirm {
+  position: sticky;
+  top: 8px;
+  z-index: 1;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .12);
   margin: 12px 16px 0;
   padding: 14px;
   border-radius: 12px;

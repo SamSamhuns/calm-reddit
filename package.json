@@ -1,0 +1,14 @@
+{
+  "name": "calm-reddit",
+  "version": "1.2.0",
+  "private": true,
+  "description": "Chrome extension that makes Reddit less addictive without blocking it.",
+  "scripts": {
+    "test": "playwright test",
+    "test:unit": "playwright test --project=unit",
+    "test:e2e": "playwright test --project=reddit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0"
+  }
+}

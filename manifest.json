@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Calm Reddit",
   "short_name": "Calm Reddit",
-  "version": "1.1.0",
-  "description": "Makes Reddit less addictive: pages instead of infinite scroll, no recommendations, hidden vote counts, blurred media, comments on demand and a pause before you dive in.",
+  "version": "1.2.0",
+  "description": "Makes Reddit less addictive: pages instead of infinite scroll, no recommendations, hidden vote counts and ads, blurred media, comments on demand, a pause before you dive in, and optional page blocking.",
   "minimum_chrome_version": "111",
   "icons": {
     "16": "icons/icon16.png",
@@ -34,7 +34,7 @@
         "https://*.reddit.com/*.json*"
       ],
       "css": ["src/calm.css"],
-      "js": ["src/settings.js", "src/bridge.js"],
+      "js": ["src/settings.js", "src/blocking.js", "src/bridge.js"],
       "run_at": "document_start"
     },
     {

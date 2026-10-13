@@ -2,22 +2,22 @@
  * Calm Reddit: page script. Runs inside reddit.com's own JavaScript world (manifest "world": "MAIN").
  *
  * Things that can only be done from inside the page:
- *   1. Stop Reddit loading more posts on its own. Reddit has several triggers (an observer on the
- *      loader at the bottom of the feed, prefetching near the end, scroll handlers), so loading is
- *      gated in three places: the observer, the loader's loadContent() method, and the network
- *      request for the next batch. Only a click on "Next page" lets a batch through.
+ *   1. Stop Reddit loading more posts on its own. The loader at the bottom of the feed is hidden by
+ *      calm.css, and gated in two places: the observer that watches it, and its loadContent() method
+ *      (which Reddit's prefetching and scroll handlers call directly). Only "Next page" lets a batch through.
+ *      Network requests are deliberately not wrapped: Chrome would then blame every warning about
+ *      Reddit's own requests on this file.
  *   2. Style elements inside Reddit's web-component shadow roots (vote counts, trending searches).
  *   3. Block video autoplay started by Reddit's own code.
  *
- * Settings arrive as attributes on <html> (data-calm-off, data-calm-pagesize), written by bridge.js.
- * Until they arrive, every feature is on.
+ * Settings arrive as attributes on <html> (data-calm-off, data-calm-on, data-calm-pagesize), written by bridge.js.
+ * Until they arrive, every protection is on and every opt-in extra is off.
  */
 (() => {
   'use strict';
   if (window.__calmRedditPage) return;
   Object.defineProperty(window, '__calmRedditPage', { value: true });
 
-  const VERSION = '1.1.0';
   const DEBUG = false;
   const log = (...args) => { if (DEBUG) console.debug('[Calm Reddit]', ...args); };
   const attempt = (fn, ...args) => {
@@ -27,11 +27,13 @@
   const html = document.documentElement;
 
   // Counters for the "Copy diagnostics" button in the popup.
-  const stats = { heldObserver: 0, blockedLoadContent: 0, deferredFetches: 0, releasedFetches: 0, batchesRequested: 0, fetches: [] };
+  const stats = { heldObserver: 0, blockedLoadContent: 0, batchesRequested: 0 };
 
   /* ================================================================ settings */
 
-  const isOn = (feature) => !` ${html.getAttribute('data-calm-off') || ''} `.includes(` ${feature} `);
+  const tokens = (attr) => ` ${html.getAttribute(attr) || ''} `;
+  const isOn = (feature) => !tokens('data-calm-off').includes(` ${feature} `);       // protections (default on)
+  const isOptedIn = (extra) => tokens('data-calm-on').includes(` ${extra} `);       // extras (default off)
   const pageSize = () => {
     const n = parseInt(html.getAttribute('data-calm-pagesize'), 10);
     return Number.isFinite(n) && n >= 3 && n <= 50 ? n : 10;
@@ -76,7 +78,7 @@
     el.getAttribute('slot') === 'load-after' && !el.closest('shreddit-comment-tree, shreddit-comment') &&
     (!!el.closest('shreddit-feed') || !!el.parentElement?.querySelector(':scope > shreddit-feed'));
 
-  // Identify a batch by its endpoint + "after" cursor, so a request can be matched to its loader.
+  // Identify a batch by its endpoint + "after" cursor.
   function batchKey(url) {
     if (!url) return '';
     try {
@@ -89,7 +91,7 @@
     }
   }
 
-  // Batches we've decided to load (because you clicked Next, or page 1 isn't full yet).
+  // Batches we've decided to load (because you clicked Next, or the current page isn't full yet).
   const permits = new Map(); // batchKey -> expiry time
   const grant = (key) => { if (key) permits.set(key, performance.now() + 15000); };
   const permitted = (key) => {
@@ -159,109 +161,7 @@
   }
   customElements.whenDefined('faceplate-partial').then(() => attempt(patchLoaderClass)).catch(() => {});
 
-  // 1c. Network: a request for the next batch waits until you ask for it.
-  const nativeFetch = window.fetch;
-  const deferred = new Map(); // batchKey -> list of functions that send the held request
-
-  function hold(key, send) {
-    if (!deferred.has(key)) deferred.set(key, []);
-    deferred.get(key).push(send);
-    stats.deferredFetches++;
-  }
-
-  // Should this request wait? Consumes a permit when it's allowed through.
-  function shouldHold(url) {
-    const key = batchKey(url);
-    if (!key || !gating() || !loaderKeys().has(key)) {
-      noteFetch(url, 'free');
-      return '';
-    }
-    if (permitted(key)) {
-      permits.delete(key);
-      noteFetch(url, 'allowed');
-      return '';
-    }
-    noteFetch(url, 'deferred');
-    return key;
-  }
-
   const sanitizePath = (path) => path.replace(/\/(r|u|user)\/[^/]+/gi, '/$1/…').slice(0, 120);
-  function noteFetch(url, gate) {
-    try {
-      const u = new URL(url, location.href);
-      if (u.origin !== location.origin || !u.pathname.startsWith('/svc/')) return;
-      stats.fetches.push({ path: sanitizePath(u.pathname), cursor: u.searchParams.has('after') || u.searchParams.has('cursor'), gate });
-      if (stats.fetches.length > 30) stats.fetches.shift();
-    } catch { /* ignore */ }
-  }
-
-  function loaderKeys() {
-    const keys = new Set();
-    for (const el of document.querySelectorAll('faceplate-partial[slot="load-after"][src]')) {
-      if (isLoadSentinel(el)) keys.add(batchKey(el.getAttribute('src')));
-    }
-    return keys;
-  }
-
-  if (typeof nativeFetch === 'function') {
-    window.fetch = function fetch(input, init) {
-      const args = arguments;
-      let key = '';
-      try {
-        key = shouldHold(typeof input === 'string' ? input : (input && input.url) || String(input));
-      } catch (err) {
-        log(err);
-      }
-      if (!key) return nativeFetch.apply(window, args);
-      return new Promise((resolve, reject) => {
-        let aborted = false;
-        const signal = (init && init.signal) || (input && input.signal);
-        if (signal) {
-          signal.addEventListener('abort', () => {
-            aborted = true;
-            reject(signal.reason || new DOMException('The operation was aborted.', 'AbortError'));
-          }, { once: true });
-        }
-        hold(key, () => {
-          if (aborted) return false;
-          nativeFetch.apply(window, args).then(resolve, reject);
-          return true;
-        });
-      });
-    };
-  }
-
-  // Same gate for XMLHttpRequest, in case the loader uses it.
-  const nativeOpen = XMLHttpRequest.prototype.open;
-  const nativeSend = XMLHttpRequest.prototype.send;
-  const xhrUrls = new WeakMap();
-  XMLHttpRequest.prototype.open = function open(method, url, ...rest) {
-    xhrUrls.set(this, String(url));
-    return nativeOpen.call(this, method, url, ...rest);
-  };
-  XMLHttpRequest.prototype.send = function send(body) {
-    let key = '';
-    try { key = shouldHold(xhrUrls.get(this)); } catch (err) { log(err); }
-    if (!key) return nativeSend.call(this, body);
-    hold(key, () => {
-      if (this.readyState !== 1) return false; // aborted or reused meanwhile
-      nativeSend.call(this, body);
-      return true;
-    });
-    return undefined;
-  };
-
-  // Send the held request(s) for one batch. Returns true if something was actually sent.
-  function releaseDeferred(key) {
-    const queue = deferred.get(key);
-    if (!queue) return false;
-    deferred.delete(key);
-    let sent = false;
-    for (const send of queue) sent = attempt(send) || sent;
-    if (sent) stats.releasedFetches++;
-    return sent;
-  }
-  const releaseAllDeferred = () => { for (const key of [...deferred.keys()]) releaseDeferred(key); };
 
   /* ================================================================ 2. styles inside shadow roots */
 
@@ -400,6 +300,9 @@
     return '';
   }
 
+  // Video and GIF posts, including links to video sites (for the "hide video posts" extra).
+  const VIDEO_POST = ':is([post-type="video"], [post-type="gif"], [domain*="youtube.com"], [domain="youtu.be"], [domain*="redgifs.com"], [domain*="streamable.com"], [domain*="twitch.tv"])';
+
   /* ================================================================ 5. pagination */
 
   // Flags live in data attributes (Reddit rewrites class attributes on re-render).
@@ -432,6 +335,14 @@
   };
   const savePage = (page) => { try { sessionStorage.setItem(pageKey(), String(page)); } catch { /* blocked */ } };
 
+  // Batches a page may load before giving up: a feed whose posts are all hidden (e.g. nothing but
+  // suggestions) must not load forever. Restoring page N after Back needs N pages' worth.
+  const batchBudget = (page) => 4 + page * 3;
+
+  // r/popular, r/all and Explore are nothing but suggestions, so filtering them would empty them.
+  // You chose to open them (keeping them out of reach is what "Block pages" is for).
+  const RECOMMENDATION_FEEDS = new Set(['popular', 'all', 'explore']);
+
   function resetFeed() {
     feedState?.pager?.remove();
     feedState = null;
@@ -446,13 +357,16 @@
     }
     if (!feedState || feedState.feed !== feed) {
       resetFeed();
+      const page = cameBack ? savedPage() : 0;
       feedState = {
         feed,
-        page: cameBack ? savedPage() : 0,
+        page,
         size: pageSize(),
         total: 0,
         filling: false,
         stalled: 0,
+        budget: batchBudget(page),
+        filterRecs: !RECOMMENDATION_FEEDS.has(pageKind),
         joinFilter: pageKind === 'home',
         pager: null, prev: null, info: null, next: null,
       };
@@ -462,6 +376,7 @@
     if (st.size !== pageSize()) {
       st.size = pageSize();
       st.page = 0;
+      st.budget = batchBudget(0);
       savePage(0);
     }
     layout(st);
@@ -477,13 +392,14 @@
       return;
     }
     ensurePager(st);
-    if (st.stalled < 3) fill(st);
+    fill(st);
   }
 
-  // Mark recommended and duplicate posts, and hide every post that isn't on the current page.
+  // Mark recommended, video and duplicate posts, and hide every post that isn't on the current page.
   function layout(st) {
     const paging = isOn('paginate');
-    const recsOn = isOn('recs');
+    const recsOn = isOn('recs') && st.filterRecs;
+    const hideVideos = isOptedIn('videos');
     const ids = new Set();
     let index = -1;
     let seen = 0;
@@ -492,6 +408,7 @@
     for (const post of st.feed.querySelectorAll('shreddit-post, shreddit-ad-post')) {
       const unit = unitOf(post);
       let reason = '';
+      let video = false;
       let duplicate = false;
       if (post.localName === 'shreddit-post') {
         if (post.id && ids.has(post.id)) {
@@ -501,13 +418,15 @@
           seen++;
           reason = recsOn ? recommendationReason(post, unit, st) : '';
           if (reason === 'join') hiddenByJoin++;
-          if (!reason) index++;
+          video = hideVideos && post.matches(VIDEO_POST);
+          if (!reason && !video) index++;
         }
       }
       const off = paging && Math.floor(Math.max(index, 0) / st.size) !== st.page;
       for (const el of [unit, unit.nextElementSibling?.localName === 'hr' ? unit.nextElementSibling : null]) {
         if (!el) continue;
         setFlag(el, 'data-calm-rec', !!reason);
+        setFlag(el, 'data-calm-video', video);
         setFlag(el, 'data-calm-dup', duplicate);
         setFlag(el, 'data-calm-offpage', off);
       }
@@ -566,6 +485,7 @@
       e.stopPropagation();
       if (btn.dataset.act === 'retry') {
         st.stalled = 0;
+        st.budget = batchBudget(0);
         fill(st);
       } else {
         goTo(st, st.page + (btn.dataset.act === 'next' ? 1 : -1));
@@ -579,14 +499,15 @@
     const pageFull = st.total >= (st.page + 1) * st.size;
     const sentinel = !!lastSentinel(st.feed);
     const more = st.total > (st.page + 1) * st.size || sentinel;
-    const stuck = !st.filling && st.stalled >= 3 && !pageFull && sentinel;
+    const failed = st.stalled >= 3;
+    const stuck = !st.filling && (failed || st.budget <= 0) && !pageFull && sentinel;
     st.prev.disabled = st.page === 0 || st.filling;
     st.next.disabled = st.filling || (!more && !stuck);
     st.next.dataset.act = stuck ? 'retry' : 'next';
-    st.next.textContent = stuck ? 'Try again' : 'Next page →';
+    st.next.textContent = !stuck ? 'Next page →' : failed ? 'Try again' : 'Keep looking';
     let info = `Page ${st.page + 1}`;
     if (st.filling) info = 'Loading…';
-    else if (stuck) info = `Page ${st.page + 1} · couldn’t load more`;
+    else if (stuck) info = failed ? `Page ${st.page + 1} · couldn’t load more` : `Page ${st.page + 1} · the rest were hidden`;
     else if (!more) info = `Page ${st.page + 1} · that’s the end`;
     st.info.textContent = info;
   }
@@ -595,6 +516,7 @@
     if (page < 0 || st.filling) return;
     st.page = page;
     st.stalled = 0;
+    st.budget = batchBudget(page);
     savePage(page);
     layout(st);
     updatePager(st);
@@ -609,39 +531,35 @@
   async function requestBatch(st) {
     const sentinel = lastSentinel(st.feed);
     if (!sentinel) return false;
-    const key = batchKey(sentinel.getAttribute('src'));
-    grant(key);
+    grant(batchKey(sentinel.getAttribute('src')));
     stats.batchesRequested++;
-    if (releaseDeferred(key)) return true; // Reddit already asked for it; let that request finish
     if (typeof sentinel.loadContent !== 'function') {
       await upgraded(sentinel);
       attempt(patchLoaderClass);
       attempt(patchLoaderInstance, sentinel);
     }
     if (!sentinel.isConnected) return true; // already replaced by the new posts
-    if (releaseDeferred(key)) return true;
     if (typeof sentinel.loadContent !== 'function') return false;
     try { sentinel.loadContent(); } catch (err) { log('loadContent failed', err); }
     return true;
   }
 
-  // Load batches until the current page is full (bounded, so a broken feed can't loop).
+  // Load batches until the current page is full, within the page's batch budget.
   async function fill(st) {
     if (st.filling) return;
     const need = (st.page + 1) * st.size;
-    if (st.total >= need || !lastSentinel(st.feed)) {
+    if (st.total >= need || st.stalled >= 3 || st.budget <= 0 || !lastSentinel(st.feed)) {
       updatePager(st);
       return;
     }
     st.filling = true;
     updatePager(st);
-    let budget = 4 + st.page * 3;
     try {
-      while (feedState === st && isOn('paginate') && st.total < need && budget > 0) {
+      while (feedState === st && isOn('paginate') && st.total < need && st.budget > 0) {
         const before = countPosts(st.feed);
         if (!(await requestBatch(st))) break;
         const grew = await waitForMorePosts(st.feed, before);
-        budget -= grew ? 1 : 2;
+        st.budget -= grew ? 1 : 2;
         if (!grew) st.stalled++;
         layout(st);
         if (!grew && st.stalled >= 3) break;
@@ -826,18 +744,25 @@
       hidden: !visible(s),
     }));
     return {
-      version: VERSION,
       page: pageKind,
       off: html.getAttribute('data-calm-off'),
+      on: html.getAttribute('data-calm-on'),
       pageSize: pageSize(),
       feeds: document.querySelectorAll('shreddit-feed').length,
       feedInMain: !!feed?.closest('main, #main-content'),
       posts: posts.length,
       visiblePosts: posts.filter((p) => visible(unitOf(p))).length,
       state: feedState && {
-        page: feedState.page, total: feedState.total, filling: feedState.filling,
-        stalled: feedState.stalled, joinFilter: feedState.joinFilter, pager: !!feedState.pager?.isConnected,
+        page: feedState.page, total: feedState.total, filling: feedState.filling, stalled: feedState.stalled,
+        budget: feedState.budget, filterRecs: feedState.filterRecs, joinFilter: feedState.joinFilter,
+        pager: !!feedState.pager?.isConnected,
       },
+      // Why posts count as suggestions, e.g. { global_popular_hot_sort: 21, none: 4 }.
+      recommendationSources: posts.reduce((counts, p) => {
+        const source = p.getAttribute('recommendation-source') || 'none';
+        counts[source] = (counts[source] || 0) + 1;
+        return counts;
+      }, {}),
       postParents: chain,
       inArticle: !!posts[0]?.closest('article'),
       feedChildren: { count: children.length, first: children.slice(0, 6), last: children.slice(-6) },
@@ -848,7 +773,6 @@
         partial: !!customElements.get('faceplate-partial'),
         gated: !!customElements.get('faceplate-partial')?.prototype?.loadContent?.__calmGate,
       },
-      pendingRequests: deferred.size,
       stats,
       scroll: { y: Math.round(window.scrollY), height: html.scrollHeight, viewport: window.innerHeight },
     };
@@ -924,10 +848,9 @@
   // Settings changed in the popup.
   new MutationObserver(() => {
     updateShadowSheet();
-    if (!isOn('paginate')) releaseAllDeferred();
     attempt(syncFeed);
     scheduleRefresh(0);
-  }).observe(html, { attributes: true, attributeFilter: ['data-calm-off', 'data-calm-pagesize'] });
+  }).observe(html, { attributes: true, attributeFilter: ['data-calm-off', 'data-calm-on', 'data-calm-pagesize'] });
 
   // Reddit navigates without full page loads in some places.
   for (const method of ['pushState', 'replaceState']) {

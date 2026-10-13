@@ -2,23 +2,14 @@
 (() => {
   'use strict';
 
+  // Every checkbox and select is wired by its data-key (a key of CALM_DEFAULTS in settings.js).
+  // Unticking a checkbox asks you to wait first, unless it has data-instant.
   const COOLDOWN_SECONDS = 10;
-  // Turning these off asks you to wait first (grayscale is an extra, so it doesn't).
-  const PROTECTIONS = new Set(['enabled', 'paginate', 'hideRecs', 'hideCounts', 'blurMedia', 'noAutoplay', 'gateComments', 'pause']);
-  const NAMES = {
-    enabled: 'Calm Reddit',
-    paginate: 'Pages, not infinite scroll',
-    hideRecs: 'Hide recommendations',
-    hideCounts: 'Hide votes & comment counts',
-    blurMedia: 'Blur images & video in feeds',
-    noAutoplay: 'No video autoplay',
-    gateComments: 'Comments behind a button',
-    pause: 'Pause before Reddit',
-  };
 
   const $ = (sel) => document.querySelector(sel);
   const toggles = [...document.querySelectorAll('input[type="checkbox"][data-key]')];
   const selects = [...document.querySelectorAll('select[data-key]')];
+  const subreddits = $('#subreddits');
   let settings = { ...CALM_DEFAULTS };
   let countdown = 0;
 
@@ -29,6 +20,7 @@
       if (![...s.options].some((o) => o.value === value)) s.add(new Option(value, value)); // keep custom values visible
       s.value = value;
     }
+    if (document.activeElement !== subreddits) subreddits.value = settings.subreddits.join(', ');
     document.body.classList.toggle('is-off', !settings.enabled);
     $('#status').textContent = settings.enabled ? 'Protecting your attention' : 'Off: Reddit is back to normal';
   }
@@ -46,9 +38,16 @@
     document.querySelector('.top').inert = false;
   }
 
-  function askToTurnOff(key) {
+  // "Turn off “Hide ads”?", "Unblock “Home feed”?" (the verb comes from the section's data-undo).
+  function offTitle(input) {
+    if (input.dataset.key === 'enabled') return 'Turn Calm Reddit off?';
+    const name = input.getAttribute('aria-label') || input.labels[0]?.textContent.trim();
+    return `${input.closest('[data-undo]')?.dataset.undo || 'Turn off'} “${name}”?`;
+  }
+
+  function confirmThen(title, apply) {
     const ok = $('#confirm-ok');
-    $('#confirm-title').textContent = key === 'enabled' ? 'Turn Calm Reddit off?' : `Turn off “${NAMES[key]}”?`;
+    $('#confirm-title').textContent = title;
     $('#confirm').hidden = false;
     $('#list').inert = true;
     document.querySelector('.top').inert = true;
@@ -68,7 +67,7 @@
     }, 1000);
     ok.onclick = () => {
       closeConfirm();
-      save({ [key]: false });
+      apply();
     };
     $('#confirm-cancel').onclick = closeConfirm;
     $('#confirm-cancel').focus();
@@ -77,18 +76,39 @@
   for (const t of toggles) {
     t.addEventListener('change', () => {
       const key = t.dataset.key;
-      if (t.checked || !PROTECTIONS.has(key)) {
+      if (t.checked || t.hasAttribute('data-instant')) {
         save({ [key]: t.checked });
         return;
       }
       t.checked = true; // stays on until the cool-down is confirmed
-      askToTurnOff(key);
+      confirmThen(offTitle(t), () => save({ [key]: false }));
     });
   }
 
   for (const s of selects) {
-    s.addEventListener('change', () => save({ [s.dataset.key]: Number(s.value) }));
+    s.addEventListener('change', () => {
+      const key = s.dataset.key;
+      const value = typeof CALM_DEFAULTS[key] === 'number' ? Number(s.value) : s.value;
+      if (key === 'subredditMode' && value === 'off') {
+        s.value = settings[key]; // stays as it was until the cool-down is confirmed
+        confirmThen('Stop using your subreddit list?', () => save({ [key]: value }));
+        return;
+      }
+      save({ [key]: value });
+    });
   }
+
+  // Saved while you type too, because closing the popup doesn't always fire "change".
+  let listTimer = 0;
+  const saveList = () => {
+    clearTimeout(listTimer);
+    save({ subreddits: calmParseSubreddits(subreddits.value) });
+  };
+  subreddits.addEventListener('input', () => {
+    clearTimeout(listTimer);
+    listTimer = setTimeout(saveList, 500);
+  });
+  subreddits.addEventListener('change', saveList);
 
   // Extensions don't run in Incognito unless you allow it, which would leave the old loophole open.
   chrome.extension.isAllowedIncognitoAccess((allowed) => {
