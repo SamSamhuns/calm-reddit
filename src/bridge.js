@@ -133,6 +133,9 @@
     .primary:disabled { opacity: .45; cursor: default; }
     .ghost { background: transparent; border-color: rgba(29,43,39,.25); color: inherit; }
     .hint { margin: 16px 0 0; font-size: 12.5px; line-height: 1.4; opacity: .6; }
+    .sum { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+    .sum span { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .sum input { flex: 1; min-width: 0; }
     @media (prefers-color-scheme: dark) {
       .backdrop { background: radial-gradient(1200px 800px at 50% 25%, #1d2a27 0%, #16211e 55%, #111a18 100%); color: #e5eee9; }
       input { background: rgba(255,255,255,.06); border-color: rgba(229,238,233,.2); }
@@ -151,12 +154,32 @@
     whenBody(buildPause);
   }
 
+  // A short sum, e.g. "6 + 3 − 12 + 2 = ?": four numbers from 2 to 12, each one added or subtracted.
+  function makeSum() {
+    const number = () => 2 + Math.floor(Math.random() * 11);
+    let answer = number();
+    let text = String(answer);
+    for (let i = 0; i < 3; i++) {
+      const n = number();
+      const add = Math.random() < 0.5;
+      answer += add ? n : -n;
+      text += add ? ` + ${n}` : ` − ${n}`;
+    }
+    return { text: `${text} = ?`, answer: String(answer) };
+  }
+
   function buildPause() {
     if (!pause || pause.host) return;
     const { host, root } = makeHost('calm-reddit-pause', { inset: '0' });
     root.adoptedStyleSheets = [sheet(SCREEN_CSS)];
 
-    const seconds = Math.max(3, Number(settings.pauseSeconds) || 10);
+    // The length changes and a sum shows one time in three, so you cannot wait it out by habit.
+    const seconds = 8 + Math.floor(Math.random() * 9); // 8 to 16 s
+    const sum = Math.random() < 1 / 3 ? makeSum() : null;
+    const answer = sum && h('input', {
+      type: 'text', maxlength: '6', autocomplete: 'off', spellcheck: 'false',
+      'aria-label': `Solve ${sum.text}`, placeholder: 'Answer',
+    });
     const count = h('div', { class: 'count' }, String(seconds));
     const cue = h('div', { class: 'cue' }, 'Breathe in…');
     const input = h('input', {
@@ -175,25 +198,31 @@
         h('h1', { id: 'calm-title' }, 'Take a breath.'),
         h('p', { class: 'lede' }, 'What did you come to Reddit for?'),
         input,
+        sum ? h('div', { class: 'sum' }, h('span', {}, sum.text), answer) : '',
         h('div', { class: 'actions' }, leave, go),
-        h('p', { class: 'hint' }, 'Reddit opens when the timer ends. Your answer stays in the corner as a reminder.'),
+        h('p', { class: 'hint' }, sum
+          ? 'Reddit opens when the timer ends and the sum is correct. Your reason stays in the corner as a reminder.'
+          : 'Reddit opens when the timer ends. Your reason stays in the corner as a reminder.'),
       ),
     ));
 
     let remaining = seconds * 1000;
     let last = performance.now();
     const started = last;
-    pause.timer = setInterval(() => {
+    const solved = () => !sum || answer.value.replace(/\s/g, '').replace(/^[−–]/, '-') === sum.answer;
+    const update = () => {
       const now = performance.now();
       if (visible()) remaining -= now - last; // the timer only runs while you're looking at it
       last = now;
       const secs = Math.max(0, Math.ceil(remaining / 1000));
       count.textContent = String(secs);
       cue.textContent = secs > 0 ? (Math.floor((now - started) / 4000) % 2 ? 'Breathe out…' : 'Breathe in…') : '';
-      go.disabled = secs > 0;
-      go.textContent = secs > 0 ? `Continue in ${secs}s` : 'Continue to Reddit';
+      go.disabled = secs > 0 || !solved();
+      go.textContent = secs > 0 ? `Continue in ${secs}s` : go.disabled ? 'Solve the sum to continue' : 'Continue to Reddit';
       if (secs === 0) clearInterval(pause.timer);
-    }, 200);
+    };
+    pause.timer = setInterval(update, 200);
+    answer?.addEventListener('input', update);
 
     const proceed = () => {
       if (go.disabled) return;
@@ -207,7 +236,7 @@
       if (text) showChip(text);
     };
     go.addEventListener('click', proceed);
-    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') proceed(); });
+    for (const el of [input, answer]) el?.addEventListener('keydown', (e) => { if (e.key === 'Enter') proceed(); });
     leave.addEventListener('click', closeTab);
 
     html.appendChild(host);

@@ -108,15 +108,33 @@ test('post pages keep comments behind a button', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('data-calm-comments-open', '');
 });
 
-test('the pause screen asks for an intention and keeps it as a reminder', async ({ page, worker, setSettings }) => {
-  await setSettings({ pauseSeconds: 3 });
+test('the pause screen asks for an intention and keeps it as a reminder', async ({ page, worker }) => {
   await worker.evaluate(() => chrome.storage.local.remove('calmLastActive')); // "been away a long time"
   await openReddit(page, SUB);
 
   await expect(page.locator('#calm-reddit-pause')).toBeAttached();
   await expect(page.locator('html')).toHaveAttribute('data-calm-pausing', '');
   await page.keyboard.type('check r/aww for one minute');
-  await page.waitForTimeout(3500); // the Continue button unlocks when the timer ends
+
+  // Sometimes the screen asks for a sum. It is in a closed shadow root, so read its text through DevTools.
+  const cdp = await page.context().newCDPSession(page);
+  const { root } = await cdp.send('DOM.getDocument', { depth: 0 });
+  const { nodeId } = await cdp.send('DOM.querySelector', { nodeId: root.nodeId, selector: '#calm-reddit-pause' });
+  const texts = [];
+  const walk = (n) => {
+    if (n.nodeType === 3) texts.push(n.nodeValue);
+    for (const child of [...(n.children || []), ...(n.shadowRoots || [])]) walk(child);
+  };
+  walk((await cdp.send('DOM.describeNode', { nodeId, depth: -1, pierce: true })).node);
+  const sum = texts.find((t) => /^\d+( [+−] \d+)+ = \?$/.test(t));
+  if (sum) {
+    const [first, ...rest] = sum.replace(' = ?', '').split(' ');
+    let answer = Number(first);
+    for (let i = 0; i < rest.length; i += 2) answer += (rest[i] === '+' ? 1 : -1) * Number(rest[i + 1]);
+    await page.keyboard.press('Tab'); // from the intention to the answer box
+    await page.keyboard.type(String(answer));
+  }
+  await page.waitForTimeout(16_500); // the Continue button unlocks when the 8 to 16 s timer ends
   await page.keyboard.press('Enter');
 
   await expect(page.locator('#calm-reddit-pause')).toHaveCount(0);

@@ -12,7 +12,7 @@ On by default:
 - **No ads:** promoted posts and ad slots are hidden.
 - **Calmer media:** images and videos in feeds are blurred until you hover over them, and nothing autoplays.
 - **Comments on demand:** post pages open with comments tucked behind a "Show comments" button.
-- **A pause on the way in:** a 10-second screen asks what you came for when you arrive after 15+ minutes away.
+- **A pause on the way in:** when you arrive after 15+ minutes away, a screen asks what you came for. It stays for a random 8 to 16 seconds, and sometimes asks you to solve a quick sum first, so you can't just wait it out by habit.
 - **Turning any protection off** in the popup makes you wait 10 seconds first.
 
 Optional, in the popup:

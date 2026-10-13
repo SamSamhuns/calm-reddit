@@ -11,8 +11,7 @@ const CALM_DEFAULTS = Object.freeze({
   blurMedia: true,        // blur images/video in feeds until hovered
   noAutoplay: true,       // videos only play when you press play
   gateComments: true,     // comments behind a "Show comments" button
-  pause: true,            // breather screen when you arrive
-  pauseSeconds: 10,
+  pause: true,            // breather screen (8 to 16 s, sometimes a sum) when you arrive
   pauseAwayMinutes: 15,   // how long away counts as a new visit
   grayscale: false,
   hideSidebars: false,    // left menu and right sidebar on every page
